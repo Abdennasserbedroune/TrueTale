@@ -52,9 +52,9 @@ export default function Home() {
             "Search and filter by genre or shared interests, and explore curated reels for recent, popular, and recommended works.",
         },
         {
-          title: "Community interaction",
+          title: "Collaborative draft workspace",
           description:
-            "Spark conversations with threaded comments, likes, bookmarks, and direct messaging that updates in real time.",
+            "Compose with autosave, manage sharing permissions, inspect revision history, and gather inline feedback in real time.",
         }].map((feature) => (
           <article
             key={feature.title}

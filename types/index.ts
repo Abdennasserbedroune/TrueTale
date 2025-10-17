@@ -140,3 +140,66 @@ export interface BuyerLibraryEntry {
   downloadCount: number;
   fulfilledAt: string;
 }
+
+export type DraftVisibility = "private" | "shared" | "public";
+
+export interface DraftAttachment {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  uploadedAt: string;
+  dataUrl?: string;
+}
+
+export interface DraftRevision {
+  id: string;
+  draftId: string;
+  authorId: string;
+  titleSnapshot: string;
+  content: string;
+  createdAt: string;
+  autosave: boolean;
+  note?: string;
+}
+
+export type DraftCommentPlacement = "inline" | "sidebar";
+
+export interface DraftWorkspaceComment {
+  id: string;
+  draftId: string;
+  authorId: string;
+  body: string;
+  createdAt: string;
+  placement: DraftCommentPlacement;
+  quote?: string | null;
+}
+
+export interface DraftSummary {
+  id: string;
+  title: string;
+  ownerId: string;
+  visibility: DraftVisibility;
+  sharedWith: string[];
+  createdAt: string;
+  updatedAt: string;
+  preview: string;
+  attachments: DraftAttachment[];
+}
+
+export interface DraftWorkspace extends DraftSummary {
+  content: string;
+  revisions: DraftRevision[];
+  comments: DraftWorkspaceComment[];
+}
+
+export interface DraftDiffSegment {
+  type: "unchanged" | "added" | "removed";
+  text: string;
+}
+
+export interface DraftComparisonView {
+  base: DraftRevision;
+  target: DraftRevision;
+  segments: DraftDiffSegment[];
+}
