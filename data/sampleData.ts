@@ -2,6 +2,10 @@ import {
   AggregatedWork,
   DashboardNotification,
   DirectMessage,
+  DraftAttachment,
+  DraftRevision,
+  DraftWorkspaceComment,
+  DraftSummary,
   FileAssetWithData,
   MarketplaceEvent,
   PurchaseRecord,
@@ -467,6 +471,114 @@ export const comments: WorkComment[] = [
     authorId: "writer-jules",
     body: "Love how you centered community voices—especially the section on localized microgrids.",
     createdAt: "2024-10-13T16:20:00.000Z",
+  },
+];
+
+export interface DraftSeed extends DraftSummary {
+  content: string;
+  latestRevisionId: string;
+}
+
+export const draftSeeds: DraftSeed[] = [
+  {
+    id: "draft-ember-letters-issue-one",
+    title: "Ember Letters – Issue One",
+    ownerId: "writer-aria",
+    visibility: "shared",
+    sharedWith: ["writer-jules", "writer-nova"],
+    createdAt: "2024-10-05T12:00:00.000Z",
+    updatedAt: "2024-10-06T09:30:00.000Z",
+    preview: "Embers gather around the letters calling out to distant collaborators.",
+    attachments: [
+      {
+        id: "draft-attachment-ember-outline",
+        filename: "ember-letters-outline.pdf",
+        contentType: "application/pdf",
+        size: 52,
+        uploadedAt: "2024-10-05T11:45:00.000Z",
+        dataUrl: "data:application/pdf;base64,RW1iZXIgTGV0dGVycyBPdXRsaW5lIFBhdGNo",
+      },
+    ],
+    content:
+      "<p>Opening letter about ember-charged voices calling through smoke.</p><p>Second paragraph bridging readers into the unfolding correspondence.</p>",
+    latestRevisionId: "draft-revision-ember-2",
+  },
+  {
+    id: "draft-clockwork-side-story",
+    title: "Clockwork Viaduct – Side Story",
+    ownerId: "writer-jules",
+    visibility: "private",
+    sharedWith: [],
+    createdAt: "2024-10-02T13:15:00.000Z",
+    updatedAt: "2024-10-03T17:55:00.000Z",
+    preview: "Side channel notes for the viaduct conspirators.",
+    attachments: [],
+    content:
+      "<p>The archivist returns to the viaduct to chase a rumour about the lost conductor.</p><p>He discovers a sealed carriage guarding the map.</p>",
+    latestRevisionId: "draft-revision-clockwork-1",
+  },
+];
+
+export const draftRevisionSeed: DraftRevision[] = [
+  {
+    id: "draft-revision-ember-1",
+    draftId: "draft-ember-letters-issue-one",
+    authorId: "writer-aria",
+    titleSnapshot: "Ember Letters – Issue One",
+    content: "<p>Opening letter about ember-charged voices calling through smoke.</p>",
+    createdAt: "2024-10-05T12:00:00.000Z",
+    autosave: false,
+    note: "Initial letter skeleton",
+  },
+  {
+    id: "draft-revision-ember-2",
+    draftId: "draft-ember-letters-issue-one",
+    authorId: "writer-aria",
+    titleSnapshot: "Ember Letters – Issue One",
+    content:
+      "<p>Opening letter about ember-charged voices calling through smoke.</p><p>Second paragraph bridging readers into the unfolding correspondence.</p>",
+    createdAt: "2024-10-06T09:30:00.000Z",
+    autosave: true,
+    note: "Autosave after co-writing session",
+  },
+  {
+    id: "draft-revision-clockwork-1",
+    draftId: "draft-clockwork-side-story",
+    authorId: "writer-jules",
+    titleSnapshot: "Clockwork Viaduct – Side Story",
+    content:
+      "<p>The archivist returns to the viaduct to chase a rumour about the lost conductor.</p><p>He discovers a sealed carriage guarding the map.</p>",
+    createdAt: "2024-10-03T17:55:00.000Z",
+    autosave: false,
+    note: "Outline pass",
+  },
+];
+
+export const draftCommentsSeed: DraftWorkspaceComment[] = [
+  {
+    id: "draft-comment-ember-1",
+    draftId: "draft-ember-letters-issue-one",
+    authorId: "writer-jules",
+    body: "Love this bridge—could you add more sensory detail about the ember drift?",
+    createdAt: "2024-10-06T10:15:00.000Z",
+    placement: "inline",
+    quote: "Second paragraph bridging readers into the unfolding correspondence.",
+  },
+  {
+    id: "draft-comment-ember-2",
+    draftId: "draft-ember-letters-issue-one",
+    authorId: "writer-nova",
+    body: "Let's brainstorm an audio texture for the closing stanza.",
+    createdAt: "2024-10-06T12:05:00.000Z",
+    placement: "sidebar",
+  },
+  {
+    id: "draft-comment-clockwork-1",
+    draftId: "draft-clockwork-side-story",
+    authorId: "writer-jules",
+    body: "Remember to weave in the conductor's diary entry before the reveal.",
+    createdAt: "2024-10-04T08:00:00.000Z",
+    placement: "sidebar",
   },
 ];
 

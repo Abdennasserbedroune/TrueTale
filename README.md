@@ -7,6 +7,7 @@ A Next.js application showcasing discovery surfaces and community tooling for in
 - **Public writer profiles** with SEO-friendly routing, highlighting bios, interests, publications, and public drafts.
 - **Marketplace discovery tools** including full-text search, genre filters, interest chips, and curated carousels for recent, popular, and recommended works.
 - **Community interactions** via likes, bookmarks, and comment threads on published works, plus simulated real-time direct messaging with preference-aware permissions.
+- **Draft collaboration workspace** for composing rich-text drafts with autosave, sharing controls, revision history, inline comments, and live collaboration signals.
 - **Writer dashboard** summarising notifications, unread messages, activity feed, and personal publication stats.
 - **Accessibility & responsiveness** ensured across navigation, forms, and interactive components.
 

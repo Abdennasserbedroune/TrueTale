@@ -17,6 +17,7 @@ const navigation = [
   { href: "/", label: "Home" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/drafts", label: "Drafts" },
   { href: "/messages", label: "Messages" },
 ];
 
