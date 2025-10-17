@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DraftStatus {
+  IN_PROGRESS
+  SUBMITTED
+  REVIEWED
+  PUBLISHED
+}
+
+enum FileAssetKind {
+  AVATAR
+  MANUSCRIPT
+  COVER_ART
+  SUPPLEMENT
+}
+
+model User {
+  id           String                     @id @default(cuid())
+  email        String                     @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  profile      Profile?
+  drafts       Draft[]
+  works        Work[]
+  comments     CommentThread[]            @relation("CommentThreadAuthor")
+  messageRoles MessageThreadParticipant[]
+  messages     Message[]                  @relation("MessageAuthor")
+  purchases    Purchase[]                 @relation("PurchaseBuyer")
+  fileAssets   FileAsset[]
+}
+
+model Profile {
+  id          String       @id @default(cuid())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String       @unique
+  displayName String
+  bio         String?
+  location    String?
+  website     String?
+  avatarUrl   String?
+  genres      String[]
+  isOnboarded Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  drafts      Draft[]
+  works       Work[]
+}
+
+model Draft {
+  id          String      @id @default(cuid())
+  title       String
+  synopsis    String?
+  content     String?
+  status      DraftStatus @default(IN_PROGRESS)
+  profile     Profile     @relation(fields: [profileId], references: [id])
+  profileId   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Work {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  title       String
+  description String?
+  publishedAt DateTime?
+  isPublic    Boolean         @default(false)
+  profile     Profile         @relation(fields: [profileId], references: [id])
+  profileId   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  comments    CommentThread[]
+  purchases   Purchase[]
+  assets      FileAsset[]
+}
+
+model CommentThread {
+  id        String   @id @default(cuid())
+  body      String
+  work      Work     @relation(fields: [workId], references: [id])
+  workId    String
+  author    User     @relation("CommentThreadAuthor", fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+}
+
+model MessageThread {
+  id           String                      @id @default(cuid())
+  subject      String?
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+
+  participants MessageThreadParticipant[]
+  messages     Message[]
+}
+
+model MessageThreadParticipant {
+  id        String         @id @default(cuid())
+  thread    MessageThread  @relation(fields: [threadId], references: [id])
+  threadId  String
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String
+  joinedAt  DateTime       @default(now())
+
+  @@unique([threadId, userId])
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  thread    MessageThread @relation(fields: [threadId], references: [id])
+  threadId  String
+  author    User          @relation("MessageAuthor", fields: [authorId], references: [id])
+  authorId  String
+  body      String
+  createdAt DateTime      @default(now())
+}
+
+model Purchase {
+  id        String   @id @default(cuid())
+  work      Work     @relation(fields: [workId], references: [id])
+  workId    String
+  buyer     User     @relation("PurchaseBuyer", fields: [buyerId], references: [id])
+  buyerId   String
+  amount    Decimal  @db.Decimal(10, 2)
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+}
+
+model FileAsset {
+  id        String        @id @default(cuid())
+  key       String        @unique
+  url       String
+  kind      FileAssetKind @default(SUPPLEMENT)
+  size      Int
+  mimeType  String
+  owner     User?         @relation(fields: [ownerId], references: [id])
+  ownerId   String?
+  work      Work?         @relation(fields: [workId], references: [id])
+  workId    String?
+  createdAt DateTime      @default(now())
+}
