@@ -26,6 +26,21 @@ export interface WriterProfile {
 
 export type WorkStatus = "published" | "draft";
 
+export type PublicationStatus = "draft" | "finalized" | "published";
+
+export interface MarketplaceMetadata {
+  status: PublicationStatus;
+  listingTitle?: string;
+  listingSynopsis?: string;
+  tags?: string[];
+  priceCents?: number;
+  fileAssetId?: string;
+  inventoryTotal?: number | null;
+  inventoryAvailable?: number | null;
+  publishedAt?: string;
+  purchaseCount?: number;
+}
+
 export interface WritingWork {
   id: string;
   slug: string;
@@ -43,6 +58,37 @@ export interface WritingWork {
   recommendationsScore: number;
   likes: number;
   bookmarks: number;
+  marketplace?: MarketplaceMetadata;
+}
+
+export interface FileAsset {
+  id: string;
+  workId: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  checksum: string;
+  createdAt: string;
+}
+
+export interface FileAssetWithData extends FileAsset {
+  base64Data: string;
+}
+
+export type PurchaseStatus = "pending" | "completed";
+
+export interface PurchaseRecord {
+  id: string;
+  workId: string;
+  buyerEmail: string;
+  buyerId: string;
+  stripeSessionId: string;
+  status: PurchaseStatus;
+  createdAt: string;
+  amountCents: number;
+  downloadToken?: string;
+  fulfilledAt?: string;
+  downloadCount: number;
 }
 
 export interface WorkComment {
@@ -85,4 +131,12 @@ export interface MarketplaceEvent {
 
 export interface AggregatedWork extends WritingWork {
   writer: WriterProfile;
+}
+
+export interface BuyerLibraryEntry {
+  purchaseId: string;
+  work: AggregatedWork;
+  downloadUrl: string;
+  downloadCount: number;
+  fulfilledAt: string;
 }

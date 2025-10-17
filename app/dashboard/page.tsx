@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import {
-  aggregatedWorks,
   comments,
   directMessages,
   marketplaceEvents,
   notifications,
   writers,
 } from "@/data/sampleData";
+import { listAggregatedWorks } from "@/lib/marketplaceStore";
 import { currentUser, currentUserId } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -29,7 +29,10 @@ export default function DashboardPage() {
     (message) => message.receiverId === currentUserId && !message.read,
   );
 
-  const latestWorks = aggregatedWorks
+  const aggregated = listAggregatedWorks();
+  const workLookup = Object.fromEntries(aggregated.map((work) => [work.id, work] as const));
+
+  const latestWorks = aggregated
     .filter((work) => work.writerId === currentUserId)
     .slice(0, 3);
 
@@ -38,7 +41,7 @@ export default function DashboardPage() {
       id: `activity-comment-${comment.id}`,
       type: "comment" as const,
       createdAt: comment.createdAt,
-      summary: `${writerLookup[comment.authorId]?.name ?? "Community member"} commented on ${aggregatedWorks.find((work) => work.id === comment.workId)?.title}`,
+      summary: `${writerLookup[comment.authorId]?.name ?? "Community member"} commented on ${workLookup[comment.workId]?.title ?? "a work"}`,
     })),
     ...marketplaceEvents.map((event) => ({
       id: `activity-event-${event.id}`,

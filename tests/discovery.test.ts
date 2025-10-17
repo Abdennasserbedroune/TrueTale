@@ -7,9 +7,13 @@ import {
   listAvailableInterests,
   searchWorks,
 } from "@/lib/discovery";
-import { aggregatedWorks } from "@/data/sampleData";
+import { listAggregatedWorks, resetMarketplaceState } from "@/lib/marketplaceStore";
 
 describe("marketplace discovery", () => {
+  beforeEach(() => {
+    resetMarketplaceState();
+  });
+
   it("filters works by search query", () => {
     const results = searchWorks({ query: "tidal" });
     expect(results).toHaveLength(1);
@@ -60,6 +64,6 @@ describe("marketplace discovery", () => {
 
   it("defaults to returning all aggregated works when no filters are provided", () => {
     const results = searchWorks();
-    expect(results.length).toBe(aggregatedWorks.length);
+    expect(results.length).toBe(listAggregatedWorks().length);
   });
 });

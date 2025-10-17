@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { MarketplaceExplorer } from "./MarketplaceExplorer";
-import { aggregatedWorks } from "@/data/sampleData";
 import {
   listAvailableGenres,
   listAvailableInterests,
@@ -8,6 +7,7 @@ import {
   getPopularWorks,
   getRecommendedWorks,
 } from "@/lib/discovery";
+import { listAggregatedWorks } from "@/lib/marketplaceStore";
 import { currentUserId } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 export default function MarketplacePage() {
   const genres = listAvailableGenres();
   const interests = listAvailableInterests();
+  const totalWorks = listAggregatedWorks().length;
 
   return (
     <div className="space-y-10">
@@ -41,7 +42,7 @@ export default function MarketplacePage() {
         }}
       />
       <p className="text-xs text-neutral-500 dark:text-neutral-500">
-        Showing {aggregatedWorks.length} total works and drafts across the community marketplace.
+        Showing {totalWorks} total works and drafts across the community marketplace.
       </p>
     </div>
   );

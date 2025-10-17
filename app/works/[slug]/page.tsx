@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WorkEngagement } from "@/components/WorkEngagement";
-import { aggregatedWorks, writers } from "@/data/sampleData";
+import { writers } from "@/data/sampleData";
+import { listAggregatedWorks } from "@/lib/marketplaceStore";
 import { getCommentsForWork, getRelatedWorks, getWorkBySlug } from "@/lib/works";
 import type { Metadata } from "next";
 
@@ -10,7 +11,7 @@ interface WorkPageProps {
 }
 
 export function generateStaticParams() {
-  return aggregatedWorks.map((work) => ({ slug: work.slug }));
+  return listAggregatedWorks().map((work) => ({ slug: work.slug }));
 }
 
 export function generateMetadata({ params }: WorkPageProps): Metadata {

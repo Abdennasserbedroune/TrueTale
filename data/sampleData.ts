@@ -2,7 +2,9 @@ import {
   AggregatedWork,
   DashboardNotification,
   DirectMessage,
+  FileAssetWithData,
   MarketplaceEvent,
+  PurchaseRecord,
   WorkComment,
   WriterProfile,
   WritingWork,
@@ -118,6 +120,19 @@ export const works: WritingWork[] = [
     recommendationsScore: 87,
     likes: 340,
     bookmarks: 198,
+    marketplace: {
+      status: "published",
+      listingTitle: "Tidal Dreams – Season One",
+      listingSynopsis:
+        "Complete season one of Tidal Dreams with annotated maps, behind-the-scenes notes, and an exclusive epilogue.",
+      tags: ["digital edition", "season pass"],
+      priceCents: 1500,
+      fileAssetId: "asset-tidal-dreams",
+      inventoryTotal: null,
+      inventoryAvailable: null,
+      publishedAt: "2024-09-12T08:00:00.000Z",
+      purchaseCount: 340,
+    },
   },
   {
     id: "work-seedling-symphony",
@@ -137,6 +152,19 @@ export const works: WritingWork[] = [
     recommendationsScore: 81,
     likes: 210,
     bookmarks: 122,
+    marketplace: {
+      status: "published",
+      listingTitle: "Seedling Symphony – Forest Choir Edition",
+      listingSynopsis:
+        "Download the illustrated Seedling Symphony short story complete with the community choir arrangement sheet music.",
+      tags: ["short story", "audio score"],
+      priceCents: 900,
+      fileAssetId: "asset-seedling-symphony",
+      inventoryTotal: null,
+      inventoryAvailable: null,
+      publishedAt: "2024-06-20T16:00:00.000Z",
+      purchaseCount: 188,
+    },
   },
   {
     id: "work-echo-vault",
@@ -156,6 +184,19 @@ export const works: WritingWork[] = [
     recommendationsScore: 90,
     likes: 402,
     bookmarks: 260,
+    marketplace: {
+      status: "published",
+      listingTitle: "Echo Vault – Interactive Finale",
+      listingSynopsis:
+        "Unlock the Echo Vault finale with the printable cipher deck, developer commentary, and a bonus branching epilogue.",
+      tags: ["interactive", "limited run"],
+      priceCents: 1800,
+      fileAssetId: "asset-echo-vault",
+      inventoryTotal: 75,
+      inventoryAvailable: 52,
+      publishedAt: "2024-10-01T20:00:00.000Z",
+      purchaseCount: 402,
+    },
   },
   {
     id: "work-clockwork-viaduct",
@@ -175,6 +216,19 @@ export const works: WritingWork[] = [
     recommendationsScore: 72,
     likes: 310,
     bookmarks: 187,
+    marketplace: {
+      status: "published",
+      listingTitle: "Clockwork Viaduct – Conspiracy Dossier",
+      listingSynopsis:
+        "A deluxe bundle featuring the full Clockwork Viaduct manuscript, annotated transit maps, and a redacted dossier reveal.",
+      tags: ["thriller", "map pack"],
+      priceCents: 1200,
+      fileAssetId: "asset-clockwork-viaduct",
+      inventoryTotal: null,
+      inventoryAvailable: null,
+      publishedAt: "2024-05-11T14:00:00.000Z",
+      purchaseCount: 247,
+    },
   },
   {
     id: "work-synaptic-gardens",
@@ -194,6 +248,19 @@ export const works: WritingWork[] = [
     recommendationsScore: 85,
     likes: 178,
     bookmarks: 240,
+    marketplace: {
+      status: "published",
+      listingTitle: "Synaptic Gardens – Immersive Chapbook",
+      listingSynopsis:
+        "Download the Synaptic Gardens multimedia chapbook with looping audio rituals and printable sigil postcards.",
+      tags: ["poetry", "multimedia"],
+      priceCents: 1100,
+      fileAssetId: "asset-synaptic-gardens",
+      inventoryTotal: null,
+      inventoryAvailable: null,
+      publishedAt: "2024-08-05T09:00:00.000Z",
+      purchaseCount: 178,
+    },
   },
   {
     id: "work-radical-horizon",
@@ -214,6 +281,19 @@ export const works: WritingWork[] = [
     recommendationsScore: 77,
     likes: 156,
     bookmarks: 133,
+    marketplace: {
+      status: "published",
+      listingTitle: "Radical Horizon – Field Report",
+      listingSynopsis:
+        "A high-resolution field report bundle with interviews, photo essays, and community co-op blueprints from Radical Horizon.",
+      tags: ["reporting", "solarpunk"],
+      priceCents: 950,
+      fileAssetId: "asset-radical-horizon",
+      inventoryTotal: null,
+      inventoryAvailable: null,
+      publishedAt: "2024-09-01T12:00:00.000Z",
+      purchaseCount: 156,
+    },
   },
   {
     id: "work-ember-letters",
@@ -233,6 +313,13 @@ export const works: WritingWork[] = [
     recommendationsScore: 68,
     likes: 34,
     bookmarks: 92,
+    marketplace: {
+      status: "draft",
+      listingTitle: "Ember Letters – Early Access",
+      listingSynopsis:
+        "Pre-release bundle capturing the Ember Letters drafts, community annotations, and weekly writing prompts.",
+      tags: ["serial", "early access"],
+    },
   },
   {
     id: "work-harbor-light",
@@ -252,6 +339,103 @@ export const works: WritingWork[] = [
     recommendationsScore: 62,
     likes: 26,
     bookmarks: 88,
+    marketplace: {
+      status: "finalized",
+      listingTitle: "Harbor Light – Seed Library Field Notes",
+      listingSynopsis:
+        "Final production files are staged, ready to launch the Harbor Light community field notes bundle.",
+      tags: ["worldbuilding", "field notes"],
+      fileAssetId: "asset-harbor-light",
+    },
+  },
+];
+
+export const fileAssets: FileAssetWithData[] = [
+  {
+    id: "asset-tidal-dreams",
+    workId: "work-tidal-dreams",
+    filename: "tidal-dreams-annotated.pdf",
+    contentType: "application/pdf",
+    size: 43,
+    checksum: "sha256-td",
+    createdAt: "2024-09-12T08:00:00.000Z",
+    base64Data: "VGlkYWwgRHJlYW1zIFNlYXNvbiBPbmUgLSBBbm5vdGF0ZWQgRWRpdGlvbg==",
+  },
+  {
+    id: "asset-seedling-symphony",
+    workId: "work-seedling-symphony",
+    filename: "seedling-symphony-score.pdf",
+    contentType: "application/pdf",
+    size: 35,
+    checksum: "sha256-ss",
+    createdAt: "2024-06-20T16:00:00.000Z",
+    base64Data: "U2VlZGxpbmcgU3ltcGhvbnkgSWxsdXN0cmF0ZWQgU2NvcmU=",
+  },
+  {
+    id: "asset-echo-vault",
+    workId: "work-echo-vault",
+    filename: "echo-vault-finale.zip",
+    contentType: "application/zip",
+    size: 22,
+    checksum: "sha256-ev",
+    createdAt: "2024-10-01T20:00:00.000Z",
+    base64Data: "RWNobyBWYXVsdCBGaW5hbGUgUGFjaw==",
+  },
+  {
+    id: "asset-clockwork-viaduct",
+    workId: "work-clockwork-viaduct",
+    filename: "clockwork-viaduct-dossier.pdf",
+    contentType: "application/pdf",
+    size: 25,
+    checksum: "sha256-cv",
+    createdAt: "2024-05-11T14:00:00.000Z",
+    base64Data: "Q2xvY2t3b3JrIFZpYWR1Y3QgRG9zc2llcg==",
+  },
+  {
+    id: "asset-synaptic-gardens",
+    workId: "work-synaptic-gardens",
+    filename: "synaptic-gardens-kit.zip",
+    contentType: "application/zip",
+    size: 31,
+    checksum: "sha256-sg",
+    createdAt: "2024-08-05T09:00:00.000Z",
+    base64Data: "U3luYXB0aWMgR2FyZGVucyBNdWx0aW1lZGlhIEtpdA==",
+  },
+  {
+    id: "asset-radical-horizon",
+    workId: "work-radical-horizon",
+    filename: "radical-horizon-field-report.pdf",
+    contentType: "application/pdf",
+    size: 28,
+    checksum: "sha256-rh",
+    createdAt: "2024-09-01T12:00:00.000Z",
+    base64Data: "UmFkaWNhbCBIb3Jpem9uIEZpZWxkIFJlcG9ydA==",
+  },
+  {
+    id: "asset-harbor-light",
+    workId: "work-harbor-light",
+    filename: "harbor-light-field-notes-draft.pdf",
+    contentType: "application/pdf",
+    size: 30,
+    checksum: "sha256-hl",
+    createdAt: "2024-10-13T15:00:00.000Z",
+    base64Data: "SGFyYm9yIExpZ2h0IEZpZWxkIE5vdGVzIERyYWZ0",
+  },
+];
+
+export const purchaseSeed: PurchaseRecord[] = [
+  {
+    id: "purchase-sample-1",
+    workId: "work-echo-vault",
+    buyerEmail: "reader-luna@example.com",
+    buyerId: "reader-luna",
+    stripeSessionId: "sess_sample_completed",
+    status: "completed",
+    createdAt: "2024-10-15T12:00:00.000Z",
+    amountCents: 1800,
+    downloadToken: "token-sample-echo",
+    fulfilledAt: "2024-10-15T12:05:00.000Z",
+    downloadCount: 1,
   },
 ];
 
@@ -417,4 +601,6 @@ export function withWriter(work: WritingWork): AggregatedWork {
   };
 }
 
-export const aggregatedWorks: AggregatedWork[] = works.map(withWriter);
+export function getAggregatedWorks(): AggregatedWork[] {
+  return works.map(withWriter);
+}
