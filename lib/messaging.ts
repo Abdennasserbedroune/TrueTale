@@ -1,6 +1,6 @@
 import {
-  aggregatedWorks,
   directMessages,
+  getAggregatedWorks,
   scheduledMessages,
   writers,
 } from "@/data/sampleData";
@@ -112,5 +112,5 @@ export function getThreadsForWriter(writerId: string): MessageThreadSummary[] {
 }
 
 export function findWorkById(workId: string): AggregatedWork | undefined {
-  return aggregatedWorks.find((work) => work.id === workId);
+  return getAggregatedWorks().find((work) => work.id === workId);
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { WorkCard } from "@/components/WorkCard";
-import { aggregatedWorks } from "@/data/sampleData";
 import { currentUserId } from "@/lib/session";
 import {
   canMessage,
@@ -10,12 +9,12 @@ import {
   getThreadMessages,
   pollScheduledMessages,
 } from "@/lib/messaging";
-import { getPublishedWorksByWriter } from "@/lib/works";
 import { AggregatedWork, DirectMessage, MessageThreadSummary, WriterProfile } from "@/types";
 
 interface MessageCenterProps {
   initialThreads: MessageThreadSummary[];
   writers: WriterProfile[];
+  works: AggregatedWork[];
 }
 
 interface ThreadState {
@@ -23,7 +22,7 @@ interface ThreadState {
   messages: DirectMessage[];
 }
 
-export function MessageCenter({ initialThreads, writers }: MessageCenterProps) {
+export function MessageCenter({ initialThreads, writers, works }: MessageCenterProps) {
   const writerLookup = useMemo(
     () => Object.fromEntries(writers.map((writer) => [writer.id, writer])),
     [writers],
@@ -90,9 +89,12 @@ export function MessageCenter({ initialThreads, writers }: MessageCenterProps) {
       : undefined;
 
   const recommendedCollaborations: AggregatedWork[] = useMemo(() => {
-    if (!currentParticipant) return aggregatedWorks.slice(0, 2);
-    return getPublishedWorksByWriter(currentParticipant.id).slice(0, 2);
-  }, [currentParticipant]);
+    const publishedWorks = works.filter((work) => work.status === "published");
+    if (!currentParticipant) return publishedWorks.slice(0, 2);
+    return publishedWorks
+      .filter((work) => work.writerId === currentParticipant.id)
+      .slice(0, 2);
+  }, [currentParticipant, works]);
 
   const handleSelectThread = (threadId: string) => {
     setSelectedThreadId(threadId);

@@ -1,6 +1,7 @@
 import { MessageCenter } from "./MessageCenter";
 import { writers } from "@/data/sampleData";
 import { getThreadsForWriter } from "@/lib/messaging";
+import { listAggregatedWorks } from "@/lib/marketplaceStore";
 import { currentUser, currentUserId } from "@/lib/session";
 import type { Metadata } from "next";
 
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 
 export default function MessagesPage() {
   const initialThreads = getThreadsForWriter(currentUserId);
+  const works = listAggregatedWorks();
 
   return (
     <div className="space-y-10">
@@ -26,7 +28,7 @@ export default function MessagesPage() {
           Manage conversations, respond to feedback, and discover new collaborators ready to build stories with {currentUser.name}.
         </p>
       </header>
-      <MessageCenter initialThreads={initialThreads} writers={writers} />
+      <MessageCenter initialThreads={initialThreads} writers={writers} works={works} />
     </div>
   );
 }

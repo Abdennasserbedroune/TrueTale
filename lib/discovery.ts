@@ -1,4 +1,4 @@
-import { aggregatedWorks } from "@/data/sampleData";
+import { listAggregatedWorks } from "@/lib/marketplaceStore";
 import { AggregatedWork, WorkStatus } from "@/types";
 
 export interface SearchFilters {
@@ -42,8 +42,9 @@ function matchesStatus(work: AggregatedWork, status: SearchFilters["status"]): b
 
 export function searchWorks(filters: SearchFilters = {}): AggregatedWork[] {
   const { query, genres, interests, status } = filters;
+  const works = listAggregatedWorks();
 
-  return aggregatedWorks
+  return works
     .filter((work) => matchesStatus(work, status))
     .filter((work) => matchesQuery(work, query))
     .filter((work) => matchesCollection(work.genres, genres))
@@ -52,7 +53,7 @@ export function searchWorks(filters: SearchFilters = {}): AggregatedWork[] {
 }
 
 export function getRecentWorks(limit = 6): AggregatedWork[] {
-  return [...aggregatedWorks]
+  return [...listAggregatedWorks()]
     .filter((work) => work.status === "published")
     .sort(
       (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
@@ -61,7 +62,7 @@ export function getRecentWorks(limit = 6): AggregatedWork[] {
 }
 
 export function getPopularWorks(limit = 6): AggregatedWork[] {
-  return [...aggregatedWorks]
+  return [...listAggregatedWorks()]
     .filter((work) => work.status === "published")
     .sort((a, b) => {
       const aScore = a.likes * 0.6 + a.bookmarks * 0.4 + a.popularityScore;
@@ -75,7 +76,7 @@ export function getRecommendedWorks(
   forWriterId?: string,
   limit = 6,
 ): AggregatedWork[] {
-  const pool = aggregatedWorks.filter(
+  const pool = listAggregatedWorks().filter(
     (work) =>
       work.status === "published" && (!forWriterId || work.writerId !== forWriterId),
   );
@@ -99,13 +100,13 @@ export function getRecommendedWorks(
 
 export function listAvailableGenres(): string[] {
   const set = new Set<string>();
-  aggregatedWorks.forEach((work) => work.genres.forEach((genre) => set.add(genre)));
+  listAggregatedWorks().forEach((work) => work.genres.forEach((genre) => set.add(genre)));
   return Array.from(set).sort();
 }
 
 export function listAvailableInterests(): string[] {
   const set = new Set<string>();
-  aggregatedWorks.forEach((work) =>
+  listAggregatedWorks().forEach((work) =>
     work.interests.forEach((interest) => set.add(interest)),
   );
   return Array.from(set).sort();

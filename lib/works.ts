@@ -1,12 +1,13 @@
-import { aggregatedWorks, comments } from "@/data/sampleData";
+import { comments } from "@/data/sampleData";
+import { getAggregatedWorkBySlug, listAggregatedWorks } from "@/lib/marketplaceStore";
 import { AggregatedWork, WorkComment } from "@/types";
 
 export function getWorkBySlug(slug: string): AggregatedWork | undefined {
-  return aggregatedWorks.find((work) => work.slug === slug);
+  return getAggregatedWorkBySlug(slug);
 }
 
 export function getWorksByWriter(writerId: string): AggregatedWork[] {
-  return aggregatedWorks.filter((work) => work.writerId === writerId);
+  return listAggregatedWorks().filter((work) => work.writerId === writerId);
 }
 
 export function getPublishedWorksByWriter(writerId: string): AggregatedWork[] {
@@ -24,10 +25,11 @@ export function getCommentsForWork(workId: string): WorkComment[] {
 }
 
 export function getRelatedWorks(workId: string, limit = 3): AggregatedWork[] {
-  const work = aggregatedWorks.find((entry) => entry.id === workId);
+  const works = listAggregatedWorks();
+  const work = works.find((entry) => entry.id === workId);
   if (!work) return [];
 
-  return aggregatedWorks
+  return works
     .filter((candidate) => candidate.id !== workId)
     .filter((candidate) =>
       candidate.genres.some((genre) => work.genres.includes(genre)) ||
