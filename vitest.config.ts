@@ -1,11 +1,24 @@
 import { defineConfig } from "vitest/config";
-import tsconfigPaths from "vite-tsconfig-paths";
+import path from "path";
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./"),
+    },
+  },
+  css: {
+    postcss: false,
+  },
   test: {
     globals: true,
-    environment: "node",
+    environment: "jsdom",
+    setupFiles: ["./tests/setup.ts"],
+    css: {
+      modules: {
+        classNameStrategy: "non-scoped",
+      },
+    },
     coverage: {
       reporter: ["text", "json", "html"],
     },
