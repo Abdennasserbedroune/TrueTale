@@ -10,8 +10,7 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 const variantStyles = {
   primary:
     "bg-brand-600 text-text-inverse hover:bg-brand-700 focus-visible:ring-brand-500 shadow-sm",
-  secondary:
-    "bg-bg-tertiary text-text-primary hover:bg-border-medium focus-visible:ring-brand-500",
+  secondary: "bg-bg-tertiary text-text-primary hover:bg-border-medium focus-visible:ring-brand-500",
   ghost: "bg-transparent text-text-secondary hover:bg-bg-secondary focus-visible:ring-brand-500",
 };
 

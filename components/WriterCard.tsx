@@ -10,9 +10,7 @@ interface WriterCardProps {
 
 export function WriterCard({ writer, showBio = false }: WriterCardProps) {
   return (
-    <article
-      className="flex flex-col justify-between rounded-lg border border-neutral-200 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/80"
-    >
+    <article className="flex flex-col justify-between rounded-lg border border-neutral-200 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/80">
       <div className="space-y-3">
         <header className="space-y-1">
           <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
@@ -22,9 +20,7 @@ export function WriterCard({ writer, showBio = false }: WriterCardProps) {
           </h3>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">{writer.tagline}</p>
         </header>
-        {showBio && (
-          <p className="text-sm text-neutral-700 dark:text-neutral-300">{writer.bio}</p>
-        )}
+        {showBio && <p className="text-sm text-neutral-700 dark:text-neutral-300">{writer.bio}</p>}
         <div className="flex flex-wrap gap-2" aria-label="Writer interests">
           {writer.interests.map((interest) => (
             <span

@@ -10,9 +10,7 @@ interface WorkCardProps {
 
 export function WorkCard({ work, variant = "vertical" }: WorkCardProps) {
   const layoutClasses =
-    variant === "horizontal"
-      ? "grid md:grid-cols-[2fr_minmax(0,1fr)] gap-4"
-      : "space-y-3";
+    variant === "horizontal" ? "grid md:grid-cols-[2fr_minmax(0,1fr)] gap-4" : "space-y-3";
 
   return (
     <article
@@ -25,7 +23,10 @@ export function WorkCard({ work, variant = "vertical" }: WorkCardProps) {
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {work.writer.name} · {new Date(work.publishedAt).toLocaleDateString()}
             </p>
-            <h3 id={`${work.id}-title`} className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+            <h3
+              id={`${work.id}-title`}
+              className="text-xl font-semibold text-neutral-900 dark:text-neutral-100"
+            >
               <Link className="hover:underline" href={`/works/${work.slug}`}>
                 {work.title}
               </Link>
@@ -34,12 +35,18 @@ export function WorkCard({ work, variant = "vertical" }: WorkCardProps) {
           <p className="text-neutral-700 dark:text-neutral-300">{work.summary}</p>
           <ul className="flex flex-wrap gap-2" aria-label="Genres and interests">
             {work.genres.map((genre) => (
-              <li key={genre} className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+              <li
+                key={genre}
+                className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+              >
                 {genre}
               </li>
             ))}
             {work.interests.map((interest) => (
-              <li key={interest} className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800 dark:bg-sky-900/40 dark:text-sky-200">
+              <li
+                key={interest}
+                className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800 dark:bg-sky-900/40 dark:text-sky-200"
+              >
                 {interest}
               </li>
             ))}

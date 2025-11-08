@@ -300,8 +300,7 @@ export const works: WritingWork[] = [
     slug: "ember-letters",
     writerId: "writer-nova",
     title: "Ember Letters",
-    summary:
-      "An upcoming collection of speculative epistolary poems shared as weekly drafts.",
+    summary: "An upcoming collection of speculative epistolary poems shared as weekly drafts.",
     excerpt: "Each letter smoldered differently, depending on who's memory it carried.",
     genres: ["Poetry", "Speculative"],
     interests: ["serialized works", "collaborations"],

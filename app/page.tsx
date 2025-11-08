@@ -15,10 +15,12 @@ export default function Home() {
         <div className="max-w-3xl space-y-6">
           <p className="text-sm uppercase tracking-[0.3em] text-emerald-100">Inkwave Collective</p>
           <h1 className="text-3xl font-semibold leading-tight sm:text-5xl">
-            Discover new writing partners, showcase your worlds, and nurture vibrant reader communities.
+            Discover new writing partners, showcase your worlds, and nurture vibrant reader
+            communities.
           </h1>
           <p className="text-lg text-emerald-50">
-            Explore writer profiles, curated discovery signals, and community-first collaboration tools designed for storytellers.
+            Explore writer profiles, curated discovery signals, and community-first collaboration
+            tools designed for storytellers.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -41,37 +43,49 @@ export default function Home() {
         <h2 id="feature-grid" className="sr-only">
           Platform features
         </h2>
-        {[{
-          title: "Public writer hubs",
-          description:
-            "SEO-friendly profile pages highlight bios, writing interests, publications, and drafts to help readers discover you.",
-        },
-        {
-          title: "Marketplace discovery",
-          description:
-            "Search and filter by genre or shared interests, and explore curated reels for recent, popular, and recommended works.",
-        },
-        {
-          title: "Community interaction",
-          description:
-            "Spark conversations with threaded comments, likes, bookmarks, and direct messaging that updates in real time.",
-        }].map((feature) => (
+        {[
+          {
+            title: "Public writer hubs",
+            description:
+              "SEO-friendly profile pages highlight bios, writing interests, publications, and drafts to help readers discover you.",
+          },
+          {
+            title: "Marketplace discovery",
+            description:
+              "Search and filter by genre or shared interests, and explore curated reels for recent, popular, and recommended works.",
+          },
+          {
+            title: "Community interaction",
+            description:
+              "Spark conversations with threaded comments, likes, bookmarks, and direct messaging that updates in real time.",
+          },
+        ].map((feature) => (
           <article
             key={feature.title}
             className="rounded-2xl border border-neutral-200 bg-white/80 p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/70"
           >
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{feature.title}</h3>
-            <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">{feature.description}</p>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+              {feature.title}
+            </h3>
+            <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">
+              {feature.description}
+            </p>
           </article>
         ))}
       </section>
 
       <section className="space-y-6" aria-labelledby="recent-works">
         <div className="flex items-center justify-between">
-          <h2 id="recent-works" className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">
+          <h2
+            id="recent-works"
+            className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50"
+          >
             Fresh from the marketplace
           </h2>
-          <Link className="text-sm font-semibold text-emerald-600 hover:underline" href="/marketplace">
+          <Link
+            className="text-sm font-semibold text-emerald-600 hover:underline"
+            href="/marketplace"
+          >
             See all
           </Link>
         </div>
@@ -84,7 +98,10 @@ export default function Home() {
 
       <section className="grid gap-12 lg:grid-cols-2" aria-labelledby="community-highlights">
         <div className="space-y-5">
-          <h2 id="community-highlights" className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+          <h2
+            id="community-highlights"
+            className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100"
+          >
             Community highlights
           </h2>
           <div className="space-y-4">

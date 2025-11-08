@@ -7,10 +7,7 @@ export interface EngagementRecord {
   comments: WorkComment[];
 }
 
-export function toggleLike(
-  record: EngagementRecord,
-  userId: string,
-): EngagementRecord {
+export function toggleLike(record: EngagementRecord, userId: string): EngagementRecord {
   const alreadyLiked = record.likes.includes(userId);
   const likes = alreadyLiked
     ? record.likes.filter((id) => id !== userId)
@@ -22,10 +19,7 @@ export function toggleLike(
   };
 }
 
-export function toggleBookmark(
-  record: EngagementRecord,
-  userId: string,
-): EngagementRecord {
+export function toggleBookmark(record: EngagementRecord, userId: string): EngagementRecord {
   const alreadyBookmarked = record.bookmarks.includes(userId);
   const bookmarks = alreadyBookmarked
     ? record.bookmarks.filter((id) => id !== userId)
@@ -45,10 +39,7 @@ export interface CreateCommentInput {
   createdAt?: string;
 }
 
-export function addComment(
-  record: EngagementRecord,
-  input: CreateCommentInput,
-): EngagementRecord {
+export function addComment(record: EngagementRecord, input: CreateCommentInput): EngagementRecord {
   const trimmed = input.body.trim();
   if (!trimmed) {
     throw new Error("Comments require content");
@@ -66,7 +57,7 @@ export function addComment(
   return {
     ...record,
     comments: [...record.comments, newComment].sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     ),
   };
 }

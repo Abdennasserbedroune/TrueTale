@@ -57,7 +57,7 @@ describe("engagement interactions", () => {
         workId: baseRecord.workId,
         authorId: "writer-aria",
         body: "   ",
-      }),
+      })
     ).toThrow("Comments require content");
   });
 

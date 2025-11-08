@@ -44,7 +44,7 @@ describe("marketplace discovery", () => {
     const recent = getRecentWorks(2);
     const [first, second] = recent;
     expect(new Date(first.publishedAt).getTime()).toBeGreaterThan(
-      new Date(second.publishedAt).getTime(),
+      new Date(second.publishedAt).getTime()
     );
   });
 
@@ -52,7 +52,7 @@ describe("marketplace discovery", () => {
     const popular = getPopularWorks(3);
     expect(popular).toHaveLength(3);
     const scores = popular.map(
-      (work) => work.likes * 0.6 + work.bookmarks * 0.4 + work.popularityScore,
+      (work) => work.likes * 0.6 + work.bookmarks * 0.4 + work.popularityScore
     );
     expect(scores[0]).toBeGreaterThanOrEqual(scores[1]);
 

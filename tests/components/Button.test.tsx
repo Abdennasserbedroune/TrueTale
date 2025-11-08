@@ -11,11 +11,7 @@ describe("Button", () => {
   });
 
   it("renders with an icon", () => {
-    render(
-      <Button icon={<HomeIcon data-testid="home-icon" />}>
-        Home
-      </Button>
-    );
+    render(<Button icon={<HomeIcon data-testid="home-icon" />}>Home</Button>);
     expect(screen.getByTestId("home-icon")).toBeInTheDocument();
   });
 

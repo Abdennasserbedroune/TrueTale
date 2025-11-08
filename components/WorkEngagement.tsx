@@ -31,7 +31,7 @@ export function WorkEngagement({ work, writers, initialComments }: WorkEngagemen
   const accessibleSummary = useMemo(
     () =>
       `This work has ${likeCount} likes, ${bookmarkCount} bookmarks, and ${engagement.comments.length} comments`,
-    [bookmarkCount, engagement.comments.length, likeCount],
+    [bookmarkCount, engagement.comments.length, likeCount]
   );
 
   const handleToggleLike = () => {
@@ -60,7 +60,7 @@ export function WorkEngagement({ work, writers, initialComments }: WorkEngagemen
           workId: work.id,
           authorId: currentUserId,
           body: commentBody,
-        }),
+        })
       );
       setCommentBody("");
       setCommentError(null);
@@ -102,7 +102,10 @@ export function WorkEngagement({ work, writers, initialComments }: WorkEngagemen
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Comments</h2>
         <CommentThread comments={engagement.comments} writers={writers} />
         <form className="space-y-3" onSubmit={handleSubmit} aria-label="Leave a comment">
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300" htmlFor="comment-body">
+          <label
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            htmlFor="comment-body"
+          >
             Share your thoughts
           </label>
           <textarea

@@ -7,10 +7,7 @@ export async function POST(request: NextRequest) {
     const { workId, buyerEmail } = body ?? {};
 
     if (!workId || !buyerEmail) {
-      return NextResponse.json(
-        { error: "workId and buyerEmail are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "workId and buyerEmail are required" }, { status: 400 });
     }
 
     const origin = request.nextUrl.origin;

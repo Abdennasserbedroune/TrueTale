@@ -1,15 +1,5 @@
-import {
-  directMessages,
-  getAggregatedWorks,
-  scheduledMessages,
-  writers,
-} from "@/data/sampleData";
-import {
-  AggregatedWork,
-  DirectMessage,
-  MessagingPreference,
-  WriterProfile,
-} from "@/types";
+import { directMessages, getAggregatedWorks, scheduledMessages, writers } from "@/data/sampleData";
+import { AggregatedWork, DirectMessage, MessagingPreference, WriterProfile } from "@/types";
 
 export function createThreadId(userA: string, userB: string): string {
   return [userA, userB].sort().join("__");
@@ -39,18 +29,13 @@ export function canMessage(senderId: string, receiverId: string): boolean {
 }
 
 export function getThreadMessages(threadId: string): DirectMessage[] {
-  const historical = directMessages.filter(
-    (message) => message.threadId === threadId,
-  );
+  const historical = directMessages.filter((message) => message.threadId === threadId);
   const delivered = scheduledMessages
-    .filter(
-      (item) =>
-        item.message.threadId === threadId && deliveredMessages.has(item.message.id),
-    )
+    .filter((item) => item.message.threadId === threadId && deliveredMessages.has(item.message.id))
     .map((item) => item.message);
 
   return [...historical, ...delivered].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 }
 
@@ -61,9 +46,7 @@ export function pollScheduledMessages(threadId: string): DirectMessage[] {
     .filter((entry) => now - scheduleBoot >= entry.delayMs)
     .filter((entry) => !deliveredMessages.has(entry.message.id))
     .map((entry) => entry.message)
-    .sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    );
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   ready.forEach((message) => deliveredMessages.add(message.id));
   return ready;
@@ -76,10 +59,7 @@ export interface MessageThreadSummary {
 }
 
 export function getThreadsForWriter(writerId: string): MessageThreadSummary[] {
-  const allMessages = [
-    ...directMessages,
-    ...scheduledMessages.map((entry) => entry.message),
-  ];
+  const allMessages = [...directMessages, ...scheduledMessages.map((entry) => entry.message)];
 
   const threads = new Map<string, DirectMessage[]>();
   allMessages.forEach((message) => {
@@ -94,10 +74,9 @@ export function getThreadsForWriter(writerId: string): MessageThreadSummary[] {
   return Array.from(threads.entries())
     .map(([threadId, messages]) => {
       const latest = messages.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )[0];
-      const participantId =
-        latest.senderId === writerId ? latest.receiverId : latest.senderId;
+      const participantId = latest.senderId === writerId ? latest.receiverId : latest.senderId;
       const participant = writers.find((writer) => writer.id === participantId);
       if (!participant || !latest) {
         return null;
