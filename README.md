@@ -341,7 +341,43 @@ All `/api/writer` endpoints require an `Authorization: Bearer <access_token>` he
   }
   ```
 
-Book writes and publications run inside MongoDB transactions to keep content and feed records in sync. Feed processing currently calls a stub service and will be expanded in a dedicated activity feed ticket.
+Book writes and publications run inside MongoDB transactions to keep content and feed records in sync.
+
+### Reader Engagement APIs
+
+Readers can browse published books, manage their reviews, follow favourite writers, and maintain personal profile details.
+
+#### Browse Published Books
+
+- `GET /api/books?page=<number>&limit=<number>&search=<term>&category=<category>&genre=<genre>&minRating=<1-5>&maxRating=<1-5>&minPrice=<number>&maxPrice=<number>&sort=<recent|rating_desc|rating_asc|price_desc|price_asc>` – Public endpoint returning only published books. Each record includes the latest rating aggregates and a summary of the writer (username, profile, avatar, follower count).
+- `GET /api/books/:id?page=<number>&limit=<number>` – Public endpoint returning a published book, writer snippet, and a paginated review payload. The response bundles review statistics (average rating, total count, and 1–5 star distribution).
+
+#### Reviews
+
+- `POST /api/books/:id/review` – Protected endpoint for creating or updating a review. Duplicate submissions update the existing review, writers cannot review their own books, and successful creates emit a stubbed `review_created` activity.
+- `GET /api/reviews?page=<number>&limit=<number>` – Protected listing of the authenticated user’s reviews, including the associated book summary.
+- `PUT /api/reviews/:id` – Protected endpoint for editing the reader’s own review.
+- `DELETE /api/reviews/:id` – Protected endpoint for removing a review. Book aggregates are recalculated after deletion.
+
+  ```json
+  {
+    "rating": 5,
+    "reviewText": "Thoughtful worldbuilding and memorable characters."
+  }
+  ```
+
+#### Follows
+
+- `POST /api/follow/:writerId` – Protected endpoint to follow a writer. The operation is idempotent and updates follower counts while recording a `follow_created` feed stub.
+- `DELETE /api/follow/:writerId` – Protected endpoint to unfollow a writer. Calling the endpoint multiple times is safe; a `follow_removed` feed stub is recorded when a relationship is removed.
+- `GET /api/following` – Protected endpoint listing the writers the reader follows with basic profile summaries and follower counts.
+
+#### Profile
+
+- `GET /api/reader/profile` – Protected endpoint returning the authenticated user’s profile plus follower/following/review counts.
+- `PUT /api/reader/profile` – Protected endpoint for updating reader profile fields (`profile`, `bio`, `avatar`, `socials`). Writers can also hit this endpoint for generic info, but writer-only fields (like their public profile tagline) are preserved.
+
+Review creation automatically recomputes book rating statistics, and follow/unfollow flows ensure community metrics stay current while continuing to use the feed service stub.
 
 ## Project Structure
 
