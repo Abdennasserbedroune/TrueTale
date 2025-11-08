@@ -7,14 +7,18 @@ import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import { EnvConfig } from "./config/env";
 import { TokenService } from "./utils/tokenService";
+import { FeedService } from "./utils/feedService";
 import { createAuthRoutes } from "./routes/authRoutes";
+import { createWriterRoutes } from "./routes/writerRoutes";
 
 interface ErrorResponse {
   message: string;
   status: number;
 }
 
-export function createApp(config: EnvConfig): Express {
+export function createApp(
+  config: EnvConfig
+): { app: Express; tokenService: TokenService; feedService: FeedService } {
   const app = express();
 
   // Trust proxy
@@ -55,6 +59,7 @@ export function createApp(config: EnvConfig): Express {
 
   // Initialize token service
   const tokenService = new TokenService(config.jwtSecret, config.jwtRefreshSecret);
+  const feedService = new FeedService();
 
   // Health check route
   app.get("/health", (_req: Request, res: Response) => {
@@ -63,6 +68,9 @@ export function createApp(config: EnvConfig): Express {
 
   // Auth routes
   app.use("/api/auth", createAuthRoutes(tokenService));
+
+  // Writer routes
+  app.use("/api/writer", createWriterRoutes(tokenService, feedService));
 
   // 404 handler
   app.use((_req: Request, res: Response) => {
@@ -93,5 +101,5 @@ export function createApp(config: EnvConfig): Express {
     }
   );
 
-  return { app, tokenService };
+  return { app, tokenService, feedService };
 }

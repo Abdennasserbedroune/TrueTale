@@ -287,6 +287,62 @@ const refreshResponse = await fetch("http://localhost:5000/api/auth/refresh", {
 const { accessToken: newAccessToken } = await refreshResponse.json();
 ```
 
+### Writer Content APIs
+
+All `/api/writer` endpoints require an `Authorization: Bearer <access_token>` header and the authenticated user must have the `writer` role.
+
+#### Books
+
+- `GET /api/writer/books?page=<number>&limit=<number>` – Returns the writer's published books sorted by `publishedAt`/`createdAt` with pagination metadata.
+- `POST /api/writer/books` – Creates a new book owned by the writer. `status` defaults to `"draft"`; sending `"published"` sets `publishedAt` automatically and records a `book_published` feed activity (stubbed for now).
+
+  ```json
+  {
+    "title": "The Long Walk",
+    "description": "A compelling narrative about perseverance.",
+    "category": "Fiction",
+    "price": 12.99,
+    "genres": ["Drama", "Adventure"],
+    "language": "English",
+    "pages": 320,
+    "status": "draft"
+  }
+  ```
+
+- `PUT /api/writer/books/:id` – Updates book metadata, pricing, or status. Transitioning to `published` sets `publishedAt` and records a feed stub.
+- `DELETE /api/writer/books/:id` – Permanently removes the book (hard delete).
+
+#### Drafts
+
+- `GET /api/writer/drafts?page=<number>&limit=<number>` – Lists all drafts owned by the writer.
+- `POST /api/writer/drafts` – Creates a draft and auto-updates the `wordCount` summary.
+- `PUT /api/writer/drafts/:id` – Updates draft title or content (word count recalculated).
+- `DELETE /api/writer/drafts/:id` – Deletes the draft.
+
+#### Stories
+
+- `GET /api/writer/stories?page=<number>&limit=<number>` – Lists the writer's stories.
+- `POST /api/writer/stories` – Creates a story. Stories publish immediately by default (`published: true`) and trigger a stubbed `story_published` feed activity.
+- `DELETE /api/writer/stories/:id` – Deletes a story owned by the writer.
+
+#### Profile
+
+- `GET /api/writer/profile` – Returns the writer's profile plus aggregated counts for published books, drafts, and stories.
+- `PUT /api/writer/profile` – Updates profile fields such as `bio`, `avatar`, `profile`, and social links.
+
+  ```json
+  {
+    "bio": "Award-winning novelist.",
+    "avatar": "https://example.com/avatar.png",
+    "socials": {
+      "website": "https://author.example.com",
+      "twitter": "https://twitter.com/author"
+    }
+  }
+  ```
+
+Book writes and publications run inside MongoDB transactions to keep content and feed records in sync. Feed processing currently calls a stub service and will be expanded in a dedicated activity feed ticket.
+
 ## Project Structure
 
 ### Frontend
@@ -301,12 +357,12 @@ const { accessToken: newAccessToken } = await refreshResponse.json();
 
 - `server/src/` – Express backend source code.
   - `config/` – Environment and database configuration.
-  - `models/` – Mongoose schemas (User).
-  - `controllers/` – Request handlers (auth).
+  - `models/` – Mongoose schemas (User, Book, Draft, Story, FeedActivity, Review, Follow).
+  - `controllers/` – Request handlers (auth, writer content management).
   - `middleware/` – Auth middleware (requireAuth, requireRole).
   - `routes/` – Express route definitions.
-  - `utils/` – Token service for JWT management.
-  - `validation/` – Zod validation schemas.
+  - `utils/` – Token and feed service stubs, shared helpers.
+  - `validation/` – Zod validation schemas for auth and writer flows.
   - `index.ts` – Server entry point with graceful shutdown handling.
   - `app.ts` – Express app with middleware setup (CORS, Helmet, rate limiting, error handling).
 - `server/tests/` – Backend Vitest suites.

@@ -3,6 +3,15 @@ import bcrypt from "bcrypt";
 
 export type UserRole = "writer" | "reader";
 
+export interface SocialLinks {
+  website?: string;
+  twitter?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  youtube?: string;
+}
+
 export interface IUser extends Document {
   email: string;
   username: string;
@@ -11,6 +20,7 @@ export interface IUser extends Document {
   profile?: string;
   bio?: string;
   avatar?: string;
+  socials?: SocialLinks;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -55,6 +65,14 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: String,
       trim: true,
+    },
+    socials: {
+      website: { type: String, trim: true },
+      twitter: { type: String, trim: true },
+      instagram: { type: String, trim: true },
+      facebook: { type: String, trim: true },
+      tiktok: { type: String, trim: true },
+      youtube: { type: String, trim: true },
     },
   },
   {
