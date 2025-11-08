@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FeedActivity = exports.Follow = exports.Review = exports.Story = exports.Draft = exports.Book = exports.User = void 0;
+exports.Order = exports.FeedActivity = exports.Follow = exports.Review = exports.Story = exports.Draft = exports.Book = exports.User = void 0;
 var User_1 = require("./User");
 Object.defineProperty(exports, "User", { enumerable: true, get: function () { return User_1.User; } });
 var Book_1 = require("./Book");
@@ -15,4 +15,6 @@ var Follow_1 = require("./Follow");
 Object.defineProperty(exports, "Follow", { enumerable: true, get: function () { return Follow_1.Follow; } });
 var FeedActivity_1 = require("./FeedActivity");
 Object.defineProperty(exports, "FeedActivity", { enumerable: true, get: function () { return FeedActivity_1.FeedActivity; } });
+var Order_1 = require("./Order");
+Object.defineProperty(exports, "Order", { enumerable: true, get: function () { return Order_1.Order; } });
 //# sourceMappingURL=index.js.map

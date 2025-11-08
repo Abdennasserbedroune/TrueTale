@@ -12,4 +12,6 @@ export { Follow } from "./Follow";
 export type { IFollow } from "./Follow";
 export { FeedActivity } from "./FeedActivity";
 export type { IFeedActivity, ActivityType } from "./FeedActivity";
+export { Order } from "./Order";
+export type { IOrder, OrderStatus } from "./Order";
 //# sourceMappingURL=index.d.ts.map
