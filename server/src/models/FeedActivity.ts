@@ -4,6 +4,7 @@ export type ActivityType =
   | "book_published"
   | "review_created"
   | "follow_created"
+  | "follow_removed"
   | "story_published"
   | "draft_created";
 
@@ -30,6 +31,7 @@ const feedActivitySchema = new Schema<IFeedActivity>(
         "book_published",
         "review_created",
         "follow_created",
+        "follow_removed",
         "story_published",
         "draft_created",
       ],

@@ -9,6 +9,7 @@ import { EnvConfig } from "./config/env";
 import { TokenService } from "./utils/tokenService";
 import { FeedService } from "./utils/feedService";
 import { createAuthRoutes } from "./routes/authRoutes";
+import { createReaderRoutes } from "./routes/readerRoutes";
 import { createWriterRoutes } from "./routes/writerRoutes";
 
 interface ErrorResponse {
@@ -68,6 +69,9 @@ export function createApp(
 
   // Auth routes
   app.use("/api/auth", createAuthRoutes(tokenService));
+
+  // Reader routes
+  app.use("/api", createReaderRoutes(tokenService, feedService));
 
   // Writer routes
   app.use("/api/writer", createWriterRoutes(tokenService, feedService));
