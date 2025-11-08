@@ -7,7 +7,7 @@ import { createApp } from "./app";
 dotenv.config();
 
 const config = loadEnv();
-const app = createApp(config);
+const { app } = createApp(config);
 
 let server: ReturnType<typeof app.listen> | null = null;
 

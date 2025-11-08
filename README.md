@@ -96,7 +96,153 @@ Run backend tests with:
 npm run server:test
 ```
 
-The backend test suite includes smoke tests for the `/health` endpoint and other critical API routes.
+The backend test suite includes smoke tests for the `/health` endpoint and comprehensive auth module tests.
+
+## API Endpoints
+
+### Authentication
+
+All authentication endpoints are available under `/api/auth`:
+
+#### Register a New User
+
+```bash
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "username": "username",
+  "password": "password123",
+  "role": "reader" // optional, defaults to "reader", can be "writer" or "reader"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "message": "User registered successfully",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "email": "user@example.com",
+    "username": "username",
+    "role": "reader",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+The refresh token is automatically set as an httpOnly cookie.
+
+#### Login
+
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Login successful",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "email": "user@example.com",
+    "username": "username",
+    "role": "reader",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### Logout
+
+```bash
+POST /api/auth/logout
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Logout successful"
+}
+```
+
+Clears the refresh token cookie.
+
+#### Refresh Access Token
+
+```bash
+POST /api/auth/refresh
+```
+
+The refresh token cookie must be present in the request.
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Token refreshed successfully",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+A new refresh token cookie is automatically set.
+
+### Protected Routes
+
+To access protected routes, include the access token in the Authorization header:
+
+```bash
+GET /api/protected-route
+Authorization: Bearer <access_token>
+```
+
+### Token Handling for Frontend
+
+1. Store the access token in memory (not localStorage for security)
+2. Include it in the Authorization header for all protected requests
+3. The refresh token is handled automatically via httpOnly cookies
+4. When the access token expires (15 minutes), call `/api/auth/refresh` to get a new one
+5. On logout, call `/api/auth/logout` to clear the refresh token
+
+**Example:**
+
+```javascript
+// Login
+const loginResponse = await fetch("http://localhost:5000/api/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  credentials: "include", // Important for cookies
+  body: JSON.stringify({ email, password }),
+});
+const { accessToken, user } = await loginResponse.json();
+
+// Protected request
+const response = await fetch("http://localhost:5000/api/protected-route", {
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+  },
+  credentials: "include",
+});
+
+// Refresh token
+const refreshResponse = await fetch("http://localhost:5000/api/auth/refresh", {
+  method: "POST",
+  credentials: "include", // Important for cookies
+});
+const { accessToken: newAccessToken } = await refreshResponse.json();
+```
 
 ## Project Structure
 
@@ -112,6 +258,12 @@ The backend test suite includes smoke tests for the `/health` endpoint and other
 
 - `server/src/` – Express backend source code.
   - `config/` – Environment and database configuration.
+  - `models/` – Mongoose schemas (User).
+  - `controllers/` – Request handlers (auth).
+  - `middleware/` – Auth middleware (requireAuth, requireRole).
+  - `routes/` – Express route definitions.
+  - `utils/` – Token service for JWT management.
+  - `validation/` – Zod validation schemas.
   - `index.ts` – Server entry point with graceful shutdown handling.
   - `app.ts` – Express app with middleware setup (CORS, Helmet, rate limiting, error handling).
 - `server/tests/` – Backend Vitest suites.
