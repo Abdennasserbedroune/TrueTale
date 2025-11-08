@@ -11,6 +11,7 @@ import { FeedService } from "./utils/feedService";
 import { createAuthRoutes } from "./routes/authRoutes";
 import { createReaderRoutes } from "./routes/readerRoutes";
 import { createWriterRoutes } from "./routes/writerRoutes";
+import { createMarketplaceRoutes } from "./routes/marketplaceRoutes";
 
 interface ErrorResponse {
   message: string;
@@ -75,6 +76,9 @@ export function createApp(
 
   // Writer routes
   app.use("/api/writer", createWriterRoutes(tokenService, feedService));
+
+  // Marketplace routes
+  app.use("/api/marketplace", createMarketplaceRoutes());
 
   // 404 handler
   app.use((_req: Request, res: Response) => {
