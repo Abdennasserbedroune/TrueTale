@@ -98,6 +98,49 @@ npm run server:test
 
 The backend test suite includes smoke tests for the `/health` endpoint and comprehensive auth module tests.
 
+## Database Seeding
+
+The platform includes a seeding workflow to populate your development database with sample data for testing and development.
+
+### Running the Seed Script
+
+To populate your database with sample users, books, drafts, stories, reviews, follows, and feed activities:
+
+```bash
+npm run server:seed
+```
+
+This will:
+- Connect to your MongoDB database (using the `MONGO_URI` from your `.env` file)
+- Clear all existing data from the collections
+- Create sample users (writers and readers)
+- Create sample books with different statuses
+- Create drafts and stories for writers
+- Generate reviews and follow relationships
+- Create feed activities for community interactions
+
+### Sample Data Overview
+
+The seed script creates:
+- **6 Users**: 4 writers and 2 readers with profiles
+- **5 Books**: Mix of published and draft books across different genres
+- **3 Drafts**: Work-in-progress content for writers
+- **3 Stories**: Published and unpublished stories
+- **6 Reviews**: Reader reviews for books
+- **Follow Relationships**: Readers following writers
+- **Feed Activities**: Activities tracking publications, reviews, and follows
+
+### Resetting the Database
+
+To completely reset your database and reseed from scratch:
+
+```bash
+# The seed script automatically clears existing data before seeding
+npm run server:seed
+```
+
+**Note**: The seeding process will delete all existing data in the following collections: `users`, `books`, `drafts`, `stories`, `reviews`, `follows`, and `feedactivities`. Only run this on development databases.
+
 ## API Endpoints
 
 ### Authentication
