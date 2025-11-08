@@ -6,6 +6,8 @@ import rateLimit from "express-rate-limit";
 import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import { EnvConfig } from "./config/env";
+import { TokenService } from "./utils/tokenService";
+import { createAuthRoutes } from "./routes/authRoutes";
 
 interface ErrorResponse {
   message: string;
@@ -51,10 +53,16 @@ export function createApp(config: EnvConfig): Express {
   });
   app.use(limiter);
 
+  // Initialize token service
+  const tokenService = new TokenService(config.jwtSecret, config.jwtRefreshSecret);
+
   // Health check route
   app.get("/health", (_req: Request, res: Response) => {
     res.status(StatusCodes.OK).json({ status: "ok" });
   });
+
+  // Auth routes
+  app.use("/api/auth", createAuthRoutes(tokenService));
 
   // 404 handler
   app.use((_req: Request, res: Response) => {
@@ -85,5 +93,5 @@ export function createApp(config: EnvConfig): Express {
     }
   );
 
-  return app;
+  return { app, tokenService };
 }

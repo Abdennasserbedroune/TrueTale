@@ -14,7 +14,7 @@ describe("Health endpoint", () => {
       jwtRefreshSecret: "test-refresh-secret",
     };
 
-    const app = createApp(config);
+    const { app } = createApp(config);
 
     const response = await request(app).get("/health");
 
