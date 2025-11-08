@@ -1,5 +1,5 @@
 export { User } from "./User";
-export type { IUser, UserRole } from "./User";
+export type { IUser, UserRole, SocialLinks } from "./User";
 
 export { Book } from "./Book";
 export type { IBook, BookStatus } from "./Book";

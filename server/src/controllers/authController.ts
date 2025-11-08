@@ -85,6 +85,7 @@ export function createAuthController(tokenService: TokenService) {
           profile: user.profile,
           bio: user.bio,
           avatar: user.avatar,
+          socials: user.socials,
           createdAt: user.createdAt,
         },
       });
@@ -162,6 +163,7 @@ export function createAuthController(tokenService: TokenService) {
           profile: user.profile,
           bio: user.bio,
           avatar: user.avatar,
+          socials: user.socials,
           createdAt: user.createdAt,
         },
       });
