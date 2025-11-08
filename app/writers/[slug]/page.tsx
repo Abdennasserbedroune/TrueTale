@@ -2,11 +2,7 @@ import { notFound } from "next/navigation";
 import { WriterCard } from "@/components/WriterCard";
 import { WorkCard } from "@/components/WorkCard";
 import { writers } from "@/data/sampleData";
-import {
-  getDraftWorksByWriter,
-  getPublishedWorksByWriter,
-  getRelatedWorks,
-} from "@/lib/works";
+import { getDraftWorksByWriter, getPublishedWorksByWriter, getRelatedWorks } from "@/lib/works";
 import type { Metadata } from "next";
 
 interface WriterPageProps {
@@ -57,11 +53,15 @@ export default function WriterProfilePage({ params }: WriterPageProps) {
           <p className="text-neutral-700 dark:text-neutral-200">{writer.bio}</p>
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Location</dt>
+              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                Location
+              </dt>
               <dd className="text-neutral-600 dark:text-neutral-300">{writer.location}</dd>
             </div>
             <div>
-              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Website</dt>
+              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                Website
+              </dt>
               <dd>
                 {writer.website ? (
                   <a className="text-emerald-600 hover:underline" href={writer.website}>
@@ -73,7 +73,9 @@ export default function WriterProfilePage({ params }: WriterPageProps) {
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Genres</dt>
+              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                Genres
+              </dt>
               <dd className="flex flex-wrap gap-2">
                 {writer.genres.map((genre) => (
                   <span
@@ -86,7 +88,9 @@ export default function WriterProfilePage({ params }: WriterPageProps) {
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Interests</dt>
+              <dt className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                Interests
+              </dt>
               <dd className="flex flex-wrap gap-2">
                 {writer.interests.map((interest) => (
                   <span
@@ -107,7 +111,10 @@ export default function WriterProfilePage({ params }: WriterPageProps) {
 
       <section className="space-y-4" aria-labelledby="published-works">
         <div className="flex items-center justify-between">
-          <h2 id="published-works" className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+          <h2
+            id="published-works"
+            className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100"
+          >
             Published works
           </h2>
           <span className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -128,7 +135,10 @@ export default function WriterProfilePage({ params }: WriterPageProps) {
       </section>
 
       <section className="space-y-4" aria-labelledby="public-drafts">
-        <h2 id="public-drafts" className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2
+          id="public-drafts"
+          className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100"
+        >
           Public drafts
         </h2>
         {drafts.length === 0 ? (
@@ -144,7 +154,10 @@ export default function WriterProfilePage({ params }: WriterPageProps) {
 
       {relatedWorks.length > 0 && (
         <section className="space-y-4" aria-labelledby="related-works">
-          <h2 id="related-works" className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+          <h2
+            id="related-works"
+            className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100"
+          >
             You may also enjoy
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

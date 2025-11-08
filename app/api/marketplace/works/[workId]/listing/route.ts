@@ -9,7 +9,7 @@ export async function PUT(request: NextRequest, { params }: { params: { workId: 
     if (!title || !synopsis || !Array.isArray(tags) || typeof priceCents !== "number") {
       return NextResponse.json(
         { error: "title, synopsis, tags, and priceCents are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 

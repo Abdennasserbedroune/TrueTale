@@ -25,7 +25,7 @@ interface ThreadState {
 export function MessageCenter({ initialThreads, writers, works }: MessageCenterProps) {
   const writerLookup = useMemo(
     () => Object.fromEntries(writers.map((writer) => [writer.id, writer])),
-    [writers],
+    [writers]
   );
 
   const [threadMap, setThreadMap] = useState<Record<string, ThreadState>>(() => {
@@ -39,7 +39,7 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
     return initial;
   });
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(
-    initialThreads[0]?.threadId ?? null,
+    initialThreads[0]?.threadId ?? null
   );
   const [messageDraft, setMessageDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -76,9 +76,9 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
       Object.values(threadMap).sort(
         (a, b) =>
           new Date(b.summary.latestMessage.createdAt).getTime() -
-          new Date(a.summary.latestMessage.createdAt).getTime(),
+          new Date(a.summary.latestMessage.createdAt).getTime()
       ),
-    [threadMap],
+    [threadMap]
   );
   const selectedThread = selectedThreadId ? threadMap[selectedThreadId] : undefined;
 
@@ -91,9 +91,7 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
   const recommendedCollaborations: AggregatedWork[] = useMemo(() => {
     const publishedWorks = works.filter((work) => work.status === "published");
     if (!currentParticipant) return publishedWorks.slice(0, 2);
-    return publishedWorks
-      .filter((work) => work.writerId === currentParticipant.id)
-      .slice(0, 2);
+    return publishedWorks.filter((work) => work.writerId === currentParticipant.id).slice(0, 2);
   }, [currentParticipant, works]);
 
   const handleSelectThread = (threadId: string) => {
@@ -257,7 +255,8 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
                 Conversation with {selectedThread.summary.participant.name}
               </h2>
               <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                Last message {new Date(selectedThread.summary.latestMessage.createdAt).toLocaleString()}
+                Last message{" "}
+                {new Date(selectedThread.summary.latestMessage.createdAt).toLocaleString()}
               </p>
             </div>
           </header>
@@ -277,7 +276,7 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
                   }`}
                 >
                   <span className="block text-xs uppercase tracking-wide">
-                    {isCurrentUser ? "You" : writerLookup[message.senderId]?.name ?? "Writer"}
+                    {isCurrentUser ? "You" : (writerLookup[message.senderId]?.name ?? "Writer")}
                   </span>
                   {message.body}
                 </p>
@@ -297,7 +296,10 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
             handleSendMessage();
           }}
         >
-          <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300" htmlFor="message-draft">
+          <label
+            className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300"
+            htmlFor="message-draft"
+          >
             Write a message
           </label>
           <textarea
@@ -305,7 +307,9 @@ export function MessageCenter({ initialThreads, writers, works }: MessageCenterP
             value={messageDraft}
             onChange={(event) => setMessageDraft(event.target.value)}
             rows={3}
-            placeholder={selectedThread ? "Share an update or ask a question" : "Select a contact to start"}
+            placeholder={
+              selectedThread ? "Share an update or ask a question" : "Select a contact to start"
+            }
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
           />
           {error && (

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest, { params }: { params: { workId:
     if (!filename || !contentType || !base64Data) {
       return NextResponse.json(
         { error: "filename, contentType, and base64Data are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 

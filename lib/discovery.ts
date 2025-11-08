@@ -55,9 +55,7 @@ export function searchWorks(filters: SearchFilters = {}): AggregatedWork[] {
 export function getRecentWorks(limit = 6): AggregatedWork[] {
   return [...listAggregatedWorks()]
     .filter((work) => work.status === "published")
-    .sort(
-      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-    )
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
     .slice(0, limit);
 }
 
@@ -72,13 +70,9 @@ export function getPopularWorks(limit = 6): AggregatedWork[] {
     .slice(0, limit);
 }
 
-export function getRecommendedWorks(
-  forWriterId?: string,
-  limit = 6,
-): AggregatedWork[] {
+export function getRecommendedWorks(forWriterId?: string, limit = 6): AggregatedWork[] {
   const pool = listAggregatedWorks().filter(
-    (work) =>
-      work.status === "published" && (!forWriterId || work.writerId !== forWriterId),
+    (work) => work.status === "published" && (!forWriterId || work.writerId !== forWriterId)
   );
 
   const scored = pool.map((work) => {
@@ -106,8 +100,6 @@ export function listAvailableGenres(): string[] {
 
 export function listAvailableInterests(): string[] {
   const set = new Set<string>();
-  listAggregatedWorks().forEach((work) =>
-    work.interests.forEach((interest) => set.add(interest)),
-  );
+  listAggregatedWorks().forEach((work) => work.interests.forEach((interest) => set.add(interest)));
   return Array.from(set).sort();
 }

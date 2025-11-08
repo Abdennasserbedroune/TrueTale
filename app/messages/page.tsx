@@ -25,7 +25,8 @@ export default function MessagesPage() {
           Connect with collaborators
         </h1>
         <p className="max-w-2xl text-neutral-600 dark:text-neutral-300">
-          Manage conversations, respond to feedback, and discover new collaborators ready to build stories with {currentUser.name}.
+          Manage conversations, respond to feedback, and discover new collaborators ready to build
+          stories with {currentUser.name}.
         </p>
       </header>
       <MessageCenter initialThreads={initialThreads} writers={writers} works={works} />

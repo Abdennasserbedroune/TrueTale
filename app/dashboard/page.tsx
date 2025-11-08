@@ -26,15 +26,13 @@ export default function DashboardPage() {
   });
 
   const unreadThreads = directMessages.filter(
-    (message) => message.receiverId === currentUserId && !message.read,
+    (message) => message.receiverId === currentUserId && !message.read
   );
 
   const aggregated = listAggregatedWorks();
   const workLookup = Object.fromEntries(aggregated.map((work) => [work.id, work] as const));
 
-  const latestWorks = aggregated
-    .filter((work) => work.writerId === currentUserId)
-    .slice(0, 3);
+  const latestWorks = aggregated.filter((work) => work.writerId === currentUserId).slice(0, 3);
 
   const activityFeed = [
     ...comments.map((comment) => ({
@@ -67,7 +65,8 @@ export default function DashboardPage() {
           Welcome back, {currentUser.name}
         </h1>
         <p className="max-w-2xl text-neutral-600 dark:text-neutral-300">
-          Monitor new comments, keep track of direct messages, and follow marketplace momentum for your recent publications.
+          Monitor new comments, keep track of direct messages, and follow marketplace momentum for
+          your recent publications.
         </p>
       </header>
 
@@ -130,7 +129,10 @@ export default function DashboardPage() {
         className="rounded-2xl border border-neutral-200 bg-white/80 p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70"
         aria-labelledby="activity-feed"
       >
-        <h2 id="activity-feed" className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2
+          id="activity-feed"
+          className="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+        >
           Activity feed
         </h2>
         <ul className="mt-4 space-y-4">
@@ -152,7 +154,10 @@ export default function DashboardPage() {
       </section>
 
       <section className="space-y-4" aria-labelledby="draft-preview">
-        <h2 id="draft-preview" className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2
+          id="draft-preview"
+          className="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+        >
           Your recent works
         </h2>
         {latestWorks.length === 0 ? (
@@ -183,11 +188,15 @@ export default function DashboardPage() {
                     <dd>{work.likes}</dd>
                   </div>
                   <div>
-                    <dt className="font-semibold text-neutral-700 dark:text-neutral-300">Bookmarks</dt>
+                    <dt className="font-semibold text-neutral-700 dark:text-neutral-300">
+                      Bookmarks
+                    </dt>
                     <dd>{work.bookmarks}</dd>
                   </div>
                   <div>
-                    <dt className="font-semibold text-neutral-700 dark:text-neutral-300">Updated</dt>
+                    <dt className="font-semibold text-neutral-700 dark:text-neutral-300">
+                      Updated
+                    </dt>
                     <dd>{new Date(work.updatedAt).toLocaleDateString()}</dd>
                   </div>
                 </dl>

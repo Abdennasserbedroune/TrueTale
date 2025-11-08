@@ -55,7 +55,10 @@ export default function RootLayout({
                 <Link href="/marketplace" className="hover:text-text-primary transition-colors">
                   Explore marketplace
                 </Link>
-                <Link href="/writers/aria-sullivan" className="hover:text-text-primary transition-colors">
+                <Link
+                  href="/writers/aria-sullivan"
+                  className="hover:text-text-primary transition-colors"
+                >
                   Meet the writers
                 </Link>
               </nav>

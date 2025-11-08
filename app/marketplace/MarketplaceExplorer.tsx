@@ -25,7 +25,7 @@ export function MarketplaceExplorer({ genres, interests, curated }: MarketplaceE
   const [query, setQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
-  const [status, setStatus] = useState<typeof statuses[number]["value"]>("published");
+  const [status, setStatus] = useState<(typeof statuses)[number]["value"]>("published");
 
   const results = useMemo(() => {
     return searchWorks({
@@ -38,9 +38,7 @@ export function MarketplaceExplorer({ genres, interests, curated }: MarketplaceE
 
   const handleGenreToggle = (genre: string) => {
     setSelectedGenres((previous) =>
-      previous.includes(genre)
-        ? previous.filter((item) => item !== genre)
-        : [...previous, genre],
+      previous.includes(genre) ? previous.filter((item) => item !== genre) : [...previous, genre]
     );
   };
 
@@ -50,9 +48,16 @@ export function MarketplaceExplorer({ genres, interests, curated }: MarketplaceE
 
   return (
     <div className="space-y-10">
-      <form className="grid gap-6 rounded-2xl border border-neutral-200 bg-white/80 p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70" role="search" aria-label="Marketplace search">
+      <form
+        className="grid gap-6 rounded-2xl border border-neutral-200 bg-white/80 p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70"
+        role="search"
+        aria-label="Marketplace search"
+      >
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300" htmlFor="search-query">
+          <label
+            className="text-sm font-semibold text-neutral-700 dark:text-neutral-300"
+            htmlFor="search-query"
+          >
             Search works
           </label>
           <input
@@ -143,7 +148,10 @@ export function MarketplaceExplorer({ genres, interests, curated }: MarketplaceE
 
       <section aria-live="polite" className="space-y-4" aria-labelledby="search-results-heading">
         <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="search-results-heading" className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+          <h2
+            id="search-results-heading"
+            className="text-xl font-semibold text-neutral-900 dark:text-neutral-100"
+          >
             Discovery results
           </h2>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -164,7 +172,10 @@ export function MarketplaceExplorer({ genres, interests, curated }: MarketplaceE
       </section>
 
       <section className="space-y-8" aria-labelledby="curated-sections">
-        <h2 id="curated-sections" className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2
+          id="curated-sections"
+          className="text-xl font-semibold text-neutral-900 dark:text-neutral-100"
+        >
           Curated spotlights
         </h2>
         <div className="grid gap-6 lg:grid-cols-3">

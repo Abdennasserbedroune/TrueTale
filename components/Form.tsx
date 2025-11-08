@@ -23,9 +23,7 @@ export function Input({ label, error, helperText, className = "", id, ...props }
             : "border-border focus:border-brand-500 focus:ring-brand-500"
         } bg-surface text-text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
         aria-invalid={error ? "true" : "false"}
-        aria-describedby={
-          error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined
-        }
+        aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
         {...props}
       />
       {error && (

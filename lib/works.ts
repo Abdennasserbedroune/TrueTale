@@ -31,9 +31,10 @@ export function getRelatedWorks(workId: string, limit = 3): AggregatedWork[] {
 
   return works
     .filter((candidate) => candidate.id !== workId)
-    .filter((candidate) =>
-      candidate.genres.some((genre) => work.genres.includes(genre)) ||
-      candidate.interests.some((interest) => work.interests.includes(interest)),
+    .filter(
+      (candidate) =>
+        candidate.genres.some((genre) => work.genres.includes(genre)) ||
+        candidate.interests.some((interest) => work.interests.includes(interest))
     )
     .sort((a, b) => b.recommendationsScore - a.recommendationsScore)
     .slice(0, limit);

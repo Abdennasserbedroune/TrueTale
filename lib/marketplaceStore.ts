@@ -242,7 +242,10 @@ export function listPublishedCatalogue(): AggregatedWork[] {
 }
 
 function deriveBuyerId(buyerEmail: string): string {
-  return buyerEmail.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return buyerEmail
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
 }
 
 export function createPendingPurchase(options: {
@@ -345,7 +348,9 @@ export function recordDownload(purchaseId: string): PurchaseRecord {
 }
 
 export function buildBuyerLibrary(buyerEmail: string): BuyerLibraryEntry[] {
-  const completed = listPurchasesForBuyer(buyerEmail).filter((purchase) => purchase.status === "completed");
+  const completed = listPurchasesForBuyer(buyerEmail).filter(
+    (purchase) => purchase.status === "completed"
+  );
 
   return completed
     .map((purchase) => {
