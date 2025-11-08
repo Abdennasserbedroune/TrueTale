@@ -15,6 +15,7 @@
     "server:build": "tsc -p server/tsconfig.json",
     "server:test": "vitest run --config server/vitest.config.ts",
     "server:lint": "eslint server/src/**/*.ts",
+    "server:seed": "tsx server/src/seeds/seed.ts",
     "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\""
   },
   "dependencies": {
@@ -61,6 +62,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^15.0.0",
     "jsdom": "^27.0.1",
+    "mongodb-memory-server": "^10.3.0",
     "prettier": "^3.6.2",
     "supertest": "^7.0.0",
     "tailwindcss": "^4",
