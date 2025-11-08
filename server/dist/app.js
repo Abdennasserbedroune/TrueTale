@@ -18,6 +18,7 @@ const readerRoutes_1 = require("./routes/readerRoutes");
 const writerRoutes_1 = require("./routes/writerRoutes");
 const marketplaceRoutes_1 = require("./routes/marketplaceRoutes");
 const feedRoutes_1 = require("./routes/feedRoutes");
+const orderRoutes_1 = require("./routes/orderRoutes");
 function createApp(config) {
     const app = (0, express_1.default)();
     // Trust proxy
@@ -58,6 +59,8 @@ function createApp(config) {
     app.use("/api/auth", (0, authRoutes_1.createAuthRoutes)(tokenService));
     // Reader routes
     app.use("/api", (0, readerRoutes_1.createReaderRoutes)(tokenService, feedService));
+    // Order routes
+    app.use("/api", (0, orderRoutes_1.createOrderRoutes)(tokenService));
     // Writer routes
     app.use("/api/writer", (0, writerRoutes_1.createWriterRoutes)(tokenService, feedService));
     // Feed routes

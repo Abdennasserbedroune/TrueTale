@@ -483,6 +483,234 @@ Returns a paginated feed of all platform activities, sorted by most recent first
 - Public endpoint (no authentication required).
 - Returns activities from all writers regardless of follow status.
 
+### Checkout & Order APIs
+
+The marketplace provides Stripe-ready checkout and order management endpoints for purchasing books.
+
+#### Get Book Checkout Information
+
+```bash
+GET /api/books/:id/checkout
+Authorization: Bearer <access_token>
+```
+
+Returns checkout information for a published book, including pricing and writer details.
+
+**Response (200 OK):**
+
+```json
+{
+  "book": {
+    "id": "507f1f77bcf86cd799439011",
+    "title": "The Great Adventure",
+    "description": "An epic journey through unknown lands",
+    "price": 12.99,
+    "coverImage": "https://example.com/cover.jpg"
+  },
+  "writer": {
+    "id": "507f1f77bcf86cd799439012",
+    "username": "author_name",
+    "profile": "Fantasy writer and world builder",
+    "bio": "Writing epic adventures for over a decade",
+    "avatar": "https://example.com/avatar.png"
+  },
+  "isPurchased": false
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` – Book does not exist
+- `403 Forbidden` – Book is not published
+- `401 Unauthorized` – Authentication required
+
+**Notes:**
+
+- Requires authentication.
+- Only works for published books.
+- `isPurchased` indicates if the user has already bought the book.
+
+#### Create Order
+
+```bash
+POST /api/orders
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "bookId": "507f1f77bcf86cd799439011"
+}
+```
+
+Creates a new order or updates an existing pending order for the specified book.
+
+**Response (201 Created):**
+
+```json
+{
+  "id": "507f1f77bcf86cd799439013",
+  "bookId": "507f1f77bcf86cd799439011",
+  "writerId": "507f1f77bcf86cd799439012",
+  "price": 12.99,
+  "status": "pending",
+  "clientSecret": "pi_507f1f77bcf86cd799439013_secret_1640995200000",
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T10:30:00.000Z"
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` – Book does not exist
+- `403 Forbidden` – Book is not published
+- `409 Conflict` – User has already purchased this book
+- `401 Unauthorized` – Authentication required
+- `400 Bad Request` – Invalid book ID
+
+**Notes:**
+
+- Requires authentication.
+- Prevents duplicate orders by updating existing pending orders.
+- Returns a placeholder `clientSecret` for Stripe integration.
+- Order status starts as `pending` and should be updated to `paid` via webhook.
+
+#### Get User Orders
+
+```bash
+GET /api/user/orders?page=<number>&limit=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns a paginated list of all orders for the authenticated user.
+
+**Response (200 OK):**
+
+```json
+{
+  "orders": [
+    {
+      "id": "507f1f77bcf86cd799439013",
+      "book": {
+        "id": "507f1f77bcf86cd799439011",
+        "title": "The Great Adventure",
+        "coverImage": "https://example.com/cover.jpg"
+      },
+      "writer": {
+        "id": "507f1f77bcf86cd799439012",
+        "username": "author_name"
+      },
+      "price": 12.99,
+      "status": "paid",
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:35:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 5,
+    "totalPages": 1
+  }
+}
+```
+
+**Query Parameters:**
+
+- `page` – Page number (default: 1, minimum: 1)
+- `limit` – Items per page (default: 10, maximum: 100)
+
+**Notes:**
+
+- Requires authentication.
+- Returns orders in reverse chronological order (newest first).
+- Includes all order statuses: `pending`, `paid`, `refunded`.
+
+#### Get User Purchases
+
+```bash
+GET /api/user/purchases?page=<number>&limit=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns a paginated list of books the user has successfully purchased (paid orders).
+
+**Response (200 OK):**
+
+```json
+{
+  "purchases": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "title": "The Great Adventure",
+      "description": "An epic journey through unknown lands",
+      "price": 12.99,
+      "coverImage": "https://example.com/cover.jpg",
+      "writer": {
+        "id": "507f1f77bcf86cd799439012",
+        "username": "author_name",
+        "profile": "Fantasy writer and world builder",
+        "bio": "Writing epic adventures for over a decade",
+        "avatar": "https://example.com/avatar.png"
+      },
+      "purchasedAt": "2024-01-15T10:35:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 3,
+    "totalPages": 1
+  }
+}
+```
+
+**Query Parameters:**
+
+- `page` – Page number (default: 1, minimum: 1)
+- `limit` – Items per page (default: 10, maximum: 100)
+
+**Notes:**
+
+- Requires authentication.
+- Only includes orders with `paid` status.
+- Sorted by purchase date (most recent first).
+- `purchasedAt` reflects when the order was marked as paid.
+
+#### Stripe Webhook Handler
+
+```bash
+POST /api/webhooks/stripe
+```
+
+Accepts Stripe webhook events for payment processing. Currently logs payloads for development.
+
+**Response (200 OK):**
+
+```json
+{
+  "received": true
+}
+```
+
+**Current Limitations:**
+
+- Signature validation is stubbed (not implemented)
+- Event handling is logged but not processed
+- Order status updates must be done manually during development
+
+**Required Environment Variables (Future):**
+
+- `STRIPE_WEBHOOK_SECRET` – For webhook signature validation
+
+**Development Notes:**
+
+To mark orders as paid during development, update the order status directly in the database:
+
+```javascript
+// Example: Mark an order as paid
+await Order.findByIdAndUpdate(orderId, { status: 'paid' });
+```
+
 ## Project Structure
 
 ### Frontend
@@ -497,12 +725,12 @@ Returns a paginated feed of all platform activities, sorted by most recent first
 
 - `server/src/` – Express backend source code.
   - `config/` – Environment and database configuration.
-  - `models/` – Mongoose schemas (User, Book, Draft, Story, FeedActivity, Review, Follow).
-  - `controllers/` – Request handlers (auth, writer content management).
+  - `models/` – Mongoose schemas (User, Book, Draft, Story, FeedActivity, Review, Follow, Order).
+  - `controllers/` – Request handlers (auth, writer content management, order processing).
   - `middleware/` – Auth middleware (requireAuth, requireRole).
   - `routes/` – Express route definitions.
   - `utils/` – Token and feed service stubs, shared helpers.
-  - `validation/` – Zod validation schemas for auth and writer flows.
+  - `validation/` – Zod validation schemas for auth, writer flows, and order processing.
   - `index.ts` – Server entry point with graceful shutdown handling.
   - `app.ts` – Express app with middleware setup (CORS, Helmet, rate limiting, error handling).
 - `server/tests/` – Backend Vitest suites.
