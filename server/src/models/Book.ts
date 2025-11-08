@@ -105,6 +105,10 @@ const bookSchema = new Schema<IBook>(
 bookSchema.index({ status: 1, publishedAt: -1 });
 bookSchema.index({ price: 1 });
 bookSchema.index({ price: -1 });
+bookSchema.index({ status: 1, averageRating: -1 });
+bookSchema.index({ status: 1, reviewCount: -1 });
+bookSchema.index({ status: 1, category: 1, publishedAt: -1 });
+bookSchema.index({ status: 1, language: 1, publishedAt: -1 });
 
 // Text search index for title and description
 bookSchema.index({ title: "text", description: "text" });
