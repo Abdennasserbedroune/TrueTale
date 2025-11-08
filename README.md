@@ -379,6 +379,110 @@ Readers can browse published books, manage their reviews, follow favourite write
 
 Review creation automatically recomputes book rating statistics, and follow/unfollow flows ensure community metrics stay current while continuing to use the feed service stub.
 
+### Activity Feeds
+
+The platform tracks user activities and serves both personal and global activity feeds.
+
+#### Feed Activity Types
+
+Activities are recorded for the following actions:
+
+- `book_published` – When a writer publishes a new book.
+- `story_published` – When a writer publishes a new story.
+- `review_created` – When a reader posts a review on a book.
+- `follow_created` – When a reader follows a writer.
+- `follow_removed` – When a reader unfollows a writer.
+
+#### Get Personal Feed
+
+```bash
+GET /api/feed?page=<number>&limit=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns a paginated feed of activities from writers the authenticated user follows, sorted by most recent first.
+
+**Response (200 OK):**
+
+```json
+{
+  "activities": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "activityType": "book_published",
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "user": {
+        "id": "507f1f77bcf86cd799439012",
+        "username": "author_name",
+        "avatar": "https://example.com/avatar.png"
+      },
+      "metadata": {
+        "title": "The Long Walk"
+      }
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 3
+}
+```
+
+**Query Parameters:**
+
+- `page` – Page number (default: 1, minimum: 1)
+- `limit` – Items per page (default: 20, maximum: 100)
+
+**Notes:**
+
+- Requires authentication.
+- Returns only activities from writers the user follows.
+- Empty if the user follows no writers.
+
+#### Get Global Feed
+
+```bash
+GET /api/feed/global?page=<number>&limit=<number>
+```
+
+Returns a paginated feed of all platform activities, sorted by most recent first. Available to both authenticated and anonymous users.
+
+**Response (200 OK):**
+
+```json
+{
+  "activities": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "activityType": "story_published",
+      "createdAt": "2024-01-15T09:15:00.000Z",
+      "user": {
+        "id": "507f1f77bcf86cd799439012",
+        "username": "another_author",
+        "avatar": null
+      },
+      "metadata": {
+        "title": "Midnight Musings"
+      }
+    }
+  ],
+  "total": 156,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 8
+}
+```
+
+**Query Parameters:**
+
+- `page` – Page number (default: 1, minimum: 1)
+- `limit` – Items per page (default: 20, maximum: 100)
+
+**Notes:**
+
+- Public endpoint (no authentication required).
+- Returns activities from all writers regardless of follow status.
+
 ## Project Structure
 
 ### Frontend
