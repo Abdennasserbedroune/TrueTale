@@ -16,6 +16,7 @@ import { createFeedRoutes } from "./routes/feedRoutes";
 import { createOrderRoutes } from "./routes/orderRoutes";
 import { createProfileRoutes } from "./routes/profileRoutes";
 import { createBookRoutes } from "./routes/bookRoutes";
+import { createDashboardRoutes } from "./routes/dashboardRoutes";
 
 interface ErrorResponse {
   message: string;
@@ -101,6 +102,9 @@ export function createApp(
 
   // Marketplace routes
   app.use("/api/marketplace", createMarketplaceRoutes());
+
+  // Dashboard routes (seller + admin)
+  app.use("/api/v1/seller/dashboard", createDashboardRoutes(tokenService));
 
   // 404 handler
   app.use((_req: Request, res: Response) => {
