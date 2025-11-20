@@ -381,7 +381,7 @@ export function createReaderController(feedService: FeedService) {
       });
 
       const reviewData = reviews.map((review) => {
-        const reviewer = review.userId as IUser;
+        const reviewer = review.userId as unknown as IUser;
         return buildReviewResponse(review, {
           id: (reviewer._id as mongoose.Types.ObjectId).toString(),
           username: reviewer.username,
@@ -910,7 +910,7 @@ export function createReaderController(feedService: FeedService) {
         new Set(
           follows
             .map((follow) => {
-              const writer = follow.followingId as IUser;
+              const writer = follow.followingId as unknown as IUser;
               return writer?.role === "writer" ? writer._id.toString() : null;
             })
             .filter((id): id is string => Boolean(id))
@@ -936,7 +936,7 @@ export function createReaderController(feedService: FeedService) {
       );
 
       const data = follows
-        .map((follow) => follow.followingId as IUser)
+        .map((follow) => follow.followingId as unknown as IUser)
         .filter((writer): writer is IUser => writer?.role === "writer")
         .map((writer) => ({
           writer: buildWriterSummary(
@@ -976,7 +976,7 @@ export function createReaderController(feedService: FeedService) {
         .sort({ createdAt: -1 });
 
       const data = followers.map((follow) => {
-        const follower = follow.followerId as IUser;
+        const follower = follow.followerId as unknown as IUser;
         return {
           id: follower._id.toString(),
           username: follower.username,

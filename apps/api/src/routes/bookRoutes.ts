@@ -1,7 +1,7 @@
 import express from "express";
 import { bookController } from "../controllers/bookController";
 import { TokenService } from "../utils/tokenService";
-import { createAuthMiddleware } from "../middleware/authMiddleware";
+import { createAuthMiddleware, costlyLimiter } from "../middleware";
 
 export function createBookRoutes(tokenService: TokenService) {
   const router = express.Router();
@@ -37,10 +37,14 @@ export function createBookRoutes(tokenService: TokenService) {
   router.post("/", requireAuth, (req, res) => bookController.createBook(req, res));
   router.put("/:id", requireAuth, (req, res) => bookController.updateBook(req, res));
   router.delete("/:id", requireAuth, (req, res) => bookController.deleteBook(req, res));
-  router.post("/:id/file-upload-url", requireAuth, (req, res) =>
+  
+  // File operations with rate limiting
+  router.post("/:id/file-upload-url", requireAuth, costlyLimiter, (req, res) =>
     bookController.getFileUploadUrl(req, res)
   );
-  router.put("/:id/files", requireAuth, (req, res) => bookController.addFile(req, res));
+  router.put("/:id/files", requireAuth, costlyLimiter, (req, res) => 
+    bookController.addFile(req, res)
+  );
   router.delete("/:id/files/:fileId", requireAuth, (req, res) =>
     bookController.deleteFile(req, res)
   );

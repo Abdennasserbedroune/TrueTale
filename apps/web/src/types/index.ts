@@ -110,6 +110,13 @@ export interface DirectMessage {
   read: boolean;
 }
 
+export interface MessageThreadSummary {
+  threadId: string;
+  otherUserId: string;
+  lastMessage?: DirectMessage;
+  unreadCount: number;
+}
+
 export type NotificationType = "comment" | "message" | "marketplace";
 
 export interface DashboardNotification {

@@ -24,7 +24,7 @@ export function createAuthController(tokenService: TokenService, emailService: E
         res.status(StatusCodes.BAD_REQUEST).json({
           message: "Validation error",
           errors:
-            parseResult.error?.errors?.map((err) => ({
+            parseResult.error?.issues?.map((err: any) => ({
               field: err.path.join("."),
               message: err.message,
             })) || [],
@@ -111,7 +111,7 @@ export function createAuthController(tokenService: TokenService, emailService: E
         res.status(StatusCodes.BAD_REQUEST).json({
           message: "Validation error",
           errors:
-            parseResult.error?.errors?.map((err) => ({
+            parseResult.error?.issues?.map((err: any) => ({
               field: err.path.join("."),
               message: err.message,
             })) || [],
@@ -287,7 +287,7 @@ export function createAuthController(tokenService: TokenService, emailService: E
         res.status(StatusCodes.BAD_REQUEST).json({
           message: "Validation error",
           errors:
-            parseResult.error?.errors?.map((err) => ({
+            parseResult.error?.issues?.map((err: any) => ({
               field: err.path.join("."),
               message: err.message,
             })) || [],
@@ -386,7 +386,7 @@ export function createAuthController(tokenService: TokenService, emailService: E
         res.status(StatusCodes.BAD_REQUEST).json({
           message: "Validation error",
           errors:
-            parseResult.error?.errors?.map((err) => ({
+            parseResult.error?.issues?.map((err: any) => ({
               field: err.path.join("."),
               message: err.message,
             })) || [],
@@ -447,7 +447,7 @@ export function createAuthController(tokenService: TokenService, emailService: E
         res.status(StatusCodes.BAD_REQUEST).json({
           message: "Validation error",
           errors:
-            parseResult.error?.errors?.map((err) => ({
+            parseResult.error?.issues?.map((err: any) => ({
               field: err.path.join("."),
               message: err.message,
             })) || [],

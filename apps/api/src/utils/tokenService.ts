@@ -6,6 +6,7 @@ export interface TokenPayload {
   email: string;
   username: string;
   role: UserRole;
+  roles?: string[];
 }
 
 export interface DecodedToken extends TokenPayload {

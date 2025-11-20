@@ -2,7 +2,7 @@ import { Router } from "express";
 import express from "express";
 import { TokenService } from "../utils/tokenService";
 import { EnvConfig } from "../config/env";
-import { createAuthMiddleware } from "../middleware";
+import { createAuthMiddleware, costlyLimiter } from "../middleware";
 import { createOrderController } from "../controllers/orderController";
 
 export function createOrderRoutes(tokenService: TokenService, config: EnvConfig): Router {
@@ -18,7 +18,8 @@ export function createOrderRoutes(tokenService: TokenService, config: EnvConfig)
 
   router.get("/books/:id/checkout", requireAuth, orderController.getBookCheckout);
 
-  router.post("/orders", requireAuth, orderController.createOrder);
+  // Order creation with rate limiting to prevent abuse
+  router.post("/orders", requireAuth, costlyLimiter, orderController.createOrder);
   router.get("/orders/:id", requireAuth, orderController.getOrder);
   router.get("/user/orders", requireAuth, orderController.getUserOrders);
   router.get("/user/purchases", requireAuth, orderController.getUserPurchases);

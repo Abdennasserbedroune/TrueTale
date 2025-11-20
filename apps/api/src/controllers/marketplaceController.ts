@@ -456,7 +456,7 @@ export function createMarketplaceController() {
             },
           },
         },
-        { $sort: { trendingScore: -1, averageRating: -1, reviewCount: -1 } },
+        { $sort: { trendingScore: -1 as const, averageRating: -1 as const, reviewCount: -1 as const } },
         { $limit: limit },
       ];
 

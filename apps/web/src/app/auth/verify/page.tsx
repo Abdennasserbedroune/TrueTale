@@ -21,7 +21,7 @@ export default function VerifyPage() {
 
     async function verifyEmail() {
       try {
-        const result = await verify(token);
+        const result = await verify(token || "");
         setStatus("success");
         setMessage(result.message || "Email verified successfully");
         setTimeout(() => {
