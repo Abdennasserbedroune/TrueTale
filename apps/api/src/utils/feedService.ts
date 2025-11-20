@@ -159,6 +159,112 @@ export class FeedService {
     }
   }
 
+  async getTrendingBooks(options: { limit?: number; days?: number } = {}): Promise<any[]> {
+    const limit = options.limit || 10;
+    const days = options.days || 7;
+
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+
+      // Import Book model dynamically to avoid circular dependency
+      const { Book } = await import("@truetale/db");
+      const { Review } = await import("@truetale/db");
+      const { User } = await import("@truetale/db");
+
+      const trendingBooks = await Book.aggregate([
+        {
+          $match: {
+            status: "published",
+            updatedAt: { $gte: cutoffDate },
+          },
+        },
+        {
+          $lookup: {
+            from: "reviews",
+            let: { bookId: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ["$bookId", "$bookId"] },
+                  createdAt: { $gte: cutoffDate },
+                },
+              },
+            ],
+            as: "recentReviews",
+          },
+        },
+        {
+          $addFields: {
+            recentReviewCount: { $size: "$recentReviews" },
+            salesCount: { $ifNull: ["$stats.sales", 0] },
+            viewsCount: { $ifNull: ["$stats.views", 0] },
+            trendScore: {
+              $add: [
+                { $multiply: [{ $ifNull: ["$stats.sales", 0] }, 0.5] },
+                { $multiply: [{ $ifNull: ["$stats.views", 0] }, 0.1] },
+                { $multiply: [{ $size: "$recentReviews" }, 1.0] },
+              ],
+            },
+          },
+        },
+        { $sort: { trendScore: -1 } },
+        { $limit: limit },
+        {
+          $project: {
+            title: 1,
+            slug: 1,
+            authorId: 1,
+            priceCents: 1,
+            coverUrl: 1,
+            coverImage: 1,
+            description: 1,
+            averageRating: 1,
+            reviewCount: 1,
+            stats: 1,
+            trendScore: 1,
+            recentReviewCount: 1,
+          },
+        },
+      ]);
+
+      // Populate author info
+      const authorIds = trendingBooks.map((book: any) => book.authorId);
+      const authors = await User.find({ _id: { $in: authorIds } }).select(
+        "username avatar bio"
+      );
+      const authorsMap = new Map(authors.map((author: any) => [author._id.toString(), author]));
+
+      return trendingBooks.map((book: any) => {
+        const author = authorsMap.get(book.authorId.toString());
+        return {
+          id: book._id.toString(),
+          title: book.title,
+          slug: book.slug,
+          coverImage: book.coverUrl || book.coverImage,
+          description: book.description,
+          price: book.priceCents / 100,
+          averageRating: book.averageRating,
+          reviewCount: book.reviewCount,
+          stats: book.stats,
+          trendScore: book.trendScore,
+          recentReviewCount: book.recentReviewCount,
+          author: author
+            ? {
+                id: author._id.toString(),
+                username: author.username,
+                avatar: author.avatar,
+                bio: author.bio,
+              }
+            : null,
+        };
+      });
+    } catch (error) {
+      console.error("[FeedService] Error fetching trending books:", error);
+      return [];
+    }
+  }
+
   private serializeActivities(activities: IFeedActivity[]): SerializedFeedItem[] {
     return activities.map((activity) => {
       const user = activity.userId as unknown;

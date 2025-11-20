@@ -20,3 +20,6 @@ export { WorkCard } from "./WorkCard";
 export { WriterCard } from "./WriterCard";
 export { WorkEngagement } from "./WorkEngagement";
 export { CommentThread } from "./CommentThread";
+export { ReviewSection } from "./ReviewSection";
+export { FollowButton } from "./FollowButton";
+export { TrendingBooks } from "./TrendingBooks";

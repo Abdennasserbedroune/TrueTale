@@ -52,6 +52,33 @@ export function createAuthMiddleware(tokenService: TokenService) {
     }
   };
 
+  const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        next();
+        return;
+      }
+
+      const token = authHeader.split(" ")[1];
+      const decoded = tokenService.verifyAccessToken(token);
+
+      if (decoded) {
+        req.user = {
+          userId: decoded.userId,
+          email: decoded.email,
+          username: decoded.username,
+          role: decoded.role,
+        };
+      }
+
+      next();
+    } catch {
+      next();
+    }
+  };
+
   const requireRole = (...roles: UserRole[]) => {
     return (req: Request, res: Response, next: NextFunction): void => {
       if (!req.user) {
@@ -74,5 +101,5 @@ export function createAuthMiddleware(tokenService: TokenService) {
     };
   };
 
-  return { requireAuth, requireRole };
+  return { requireAuth, optionalAuth, requireRole };
 }
