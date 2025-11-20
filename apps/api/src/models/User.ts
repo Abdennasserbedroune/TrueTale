@@ -21,6 +21,12 @@ export interface IUser extends Document {
   bio?: string;
   avatar?: string;
   socials?: SocialLinks;
+  isVerified: boolean;
+  verificationToken?: string;
+  verificationExpires?: Date;
+  resetToken?: string;
+  resetExpires?: Date;
+  refreshTokens: Array<{ token: string; expiresAt: Date }>;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -74,6 +80,29 @@ const userSchema = new Schema<IUser>(
       tiktok: { type: String, trim: true },
       youtube: { type: String, trim: true },
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    verificationToken: {
+      type: String,
+    },
+    verificationExpires: {
+      type: Date,
+    },
+    resetToken: {
+      type: String,
+    },
+    resetExpires: {
+      type: Date,
+    },
+    refreshTokens: [
+      {
+        token: { type: String, required: true },
+        expiresAt: { type: Date, required: true },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -104,5 +133,9 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
     return false;
   }
 };
+
+// Indexes for verification and reset tokens
+userSchema.index({ verificationToken: 1, verificationExpires: 1 });
+userSchema.index({ resetToken: 1, resetExpires: 1 });
 
 export const User = mongoose.model<IUser>("User", userSchema);

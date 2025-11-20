@@ -128,11 +128,22 @@ NODE_ENV=development
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/truetale
 CLIENT_ORIGIN=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
 JWT_SECRET=dev-jwt-secret-key
 JWT_REFRESH_SECRET=dev-jwt-refresh-secret-key
+
+# Email Configuration (Optional - for email verification and password reset)
+# EMAIL_HOST=smtp.gmail.com
+# EMAIL_PORT=587
+# EMAIL_SECURE=false
+# EMAIL_USER=your-email@gmail.com
+# EMAIL_PASSWORD=your-app-password
+# EMAIL_FROM=noreply@truetale.app
 ```
 
 **⚠️ Never commit `.env` files to version control.** Use `.env.local` for local overrides and keep sensitive values secure.
+
+**Note:** Email configuration is optional for development. If not configured, verification and password reset emails will be logged to the console instead of being sent.
 
 ## Testing
 
@@ -239,19 +250,31 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "User registered successfully",
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": "507f1f77bcf86cd799439011",
-    "email": "user@example.com",
-    "username": "username",
-    "role": "reader",
-    "createdAt": "2024-01-01T00:00:00.000Z"
-  }
+  "message": "Registration successful. Please check your email to verify your account.",
+  "userId": "507f1f77bcf86cd799439011"
 }
 ```
 
-The refresh token is automatically set as an httpOnly cookie.
+**Note:** Registration now requires email verification. Users must verify their email before they can log in.
+
+#### Verify Email
+
+```bash
+POST /api/auth/verify
+Content-Type: application/json
+
+{
+  "token": "verification-token-from-email"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Email verified successfully. You can now log in."
+}
+```
 
 #### Login
 
@@ -315,6 +338,76 @@ The refresh token cookie must be present in the request.
 ```
 
 A new refresh token cookie is automatically set.
+
+#### Get Current User
+
+```bash
+GET /api/auth/me
+Authorization: Bearer <access_token>
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "email": "user@example.com",
+    "username": "username",
+    "role": "reader",
+    "isVerified": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### Forgot Password
+
+```bash
+POST /api/auth/forgot
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "If the email exists, a password reset link has been sent."
+}
+```
+
+**Note:** For security, this always returns success even if the email doesn't exist.
+
+#### Reset Password
+
+```bash
+POST /api/auth/reset
+Content-Type: application/json
+
+{
+  "token": "reset-token-from-email",
+  "newPassword": "newpassword123"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Password reset successful. You can now log in with your new password."
+}
+```
+
+### Rate Limiting
+
+Authentication endpoints are rate-limited to prevent brute force attacks:
+- **Register/Login**: 5 attempts per 15 minutes per IP
+- **Forgot Password**: 3 attempts per hour per IP
 
 ### Protected Routes
 
