@@ -1,7 +1,271 @@
 import express from "express";
-import { Order, User, Book } from "@truetale/db";
+import { Order, User, Book, Review } from "@truetale/db";
+import Stripe from "stripe";
+import { logger } from "../lib/logger";
 
 export class AdminController {
+  private requireAdmin(req: express.Request) {
+    const roles = (req as any).user?.roles || [];
+    const role = (req as any).user?.role;
+    
+    // Check if user is admin (either in roles array or role field)
+    const isAdmin = roles.includes('admin') || role === 'admin';
+    if (!isAdmin) {
+      throw new Error('Admin access required');
+    }
+  }
+
+  // User Management
+  async listUsers(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { q, limit = '20', offset = '0' } = req.query;
+      const query: any = {};
+
+      if (q) {
+        query.$or = [
+          { username: { $regex: q, $options: 'i' } },
+          { email: { $regex: q, $options: 'i' } },
+        ];
+      }
+
+      const limitNum = Math.min(parseInt(limit as string) || 20, 100);
+      const offsetNum = Math.max(parseInt(offset as string) || 0, 0);
+
+      const [users, total] = await Promise.all([
+        User.find(query)
+          .select('-password')
+          .limit(limitNum)
+          .skip(offsetNum)
+          .lean(),
+        User.countDocuments(query),
+      ]);
+
+      logger.info('Admin listed users', {
+        adminId: (req as any).user?.id,
+        query: q,
+        total,
+      });
+
+      res.json({ data: users, total });
+    } catch (err: any) {
+      logger.error('Failed to list users', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  async banUser(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      if (!reason || reason.trim().length === 0) {
+        return res.status(400).json({ error: 'Ban reason is required' });
+      }
+
+      const user = await User.findByIdAndUpdate(
+        id,
+        { isBanned: true, banReason: reason },
+        { new: true }
+      ).select('-password');
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      logger.warn('User banned', {
+        adminId: (req as any).user?.id,
+        bannedUserId: id,
+        reason,
+      });
+
+      res.json({ message: 'User banned successfully', user });
+    } catch (err: any) {
+      logger.error('Failed to ban user', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  async unbanUser(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { id } = req.params;
+
+      const user = await User.findByIdAndUpdate(
+        id,
+        { isBanned: false, banReason: null },
+        { new: true }
+      ).select('-password');
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      logger.info('User unbanned', {
+        adminId: (req as any).user?.id,
+        unbannedUserId: id,
+      });
+
+      res.json({ message: 'User unbanned successfully', user });
+    } catch (err: any) {
+      logger.error('Failed to unban user', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  // Content Moderation
+  async removeBook(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { id } = req.params;
+      const book = await Book.findByIdAndDelete(id);
+
+      if (!book) {
+        return res.status(404).json({ error: 'Book not found' });
+      }
+
+      logger.warn('Book removed by admin', {
+        adminId: (req as any).user?.id,
+        bookId: id,
+        bookTitle: book.title,
+      });
+
+      res.json({ message: 'Book removed successfully' });
+    } catch (err: any) {
+      logger.error('Failed to remove book', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  async removeReview(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { id } = req.params;
+      const review = await Review.findByIdAndDelete(id);
+
+      if (!review) {
+        return res.status(404).json({ error: 'Review not found' });
+      }
+
+      logger.warn('Review removed by admin', {
+        adminId: (req as any).user?.id,
+        reviewId: id,
+      });
+
+      res.json({ message: 'Review removed successfully' });
+    } catch (err: any) {
+      logger.error('Failed to remove review', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  // Order Management
+  async listOrders(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { status, limit = '20', offset = '0' } = req.query;
+      const query: any = {};
+
+      if (status) {
+        query.status = status;
+      }
+
+      const limitNum = Math.min(parseInt(limit as string) || 20, 100);
+      const offsetNum = Math.max(parseInt(offset as string) || 0, 0);
+
+      const [orders, total] = await Promise.all([
+        Order.find(query)
+          .populate('buyerId', 'email username')
+          .populate('writerId', 'email username')
+          .populate('bookId', 'title')
+          .limit(limitNum)
+          .skip(offsetNum)
+          .sort({ createdAt: -1 })
+          .lean(),
+        Order.countDocuments(query),
+      ]);
+
+      logger.info('Admin listed orders', {
+        adminId: (req as any).user?.id,
+        status,
+        total,
+      });
+
+      res.json({ data: orders, total });
+    } catch (err: any) {
+      logger.error('Failed to list orders', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  async refundOrder(req: express.Request, res: express.Response) {
+    try {
+      this.requireAdmin(req);
+
+      const { id } = req.params;
+      const order = await Order.findById(id);
+
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      if (order.status !== 'paid') {
+        return res.status(400).json({ 
+          error: 'Only paid orders can be refunded' 
+        });
+      }
+
+      // Process refund via Stripe
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        throw new Error('Stripe secret key not configured');
+      }
+
+      const stripe = new Stripe(stripeSecretKey);
+
+      await stripe.refunds.create({
+        payment_intent: order.stripePaymentIntentId,
+      });
+
+      // Update order status
+      order.status = 'refunded';
+      await order.save();
+
+      logger.warn('Order refunded by admin', {
+        adminId: (req as any).user?.id,
+        orderId: id,
+        amount: order.amountCents,
+      });
+
+      res.json({ message: 'Order refunded successfully', order });
+    } catch (err: any) {
+      logger.error('Failed to refund order', { error: err.message });
+      res.status(err.message === 'Admin access required' ? 403 : 500).json({ 
+        error: err.message 
+      });
+    }
+  }
+
+  // Platform Settings & Reports
   async getPlatformSettings(req: express.Request, res: express.Response) {
     try {
       // In production, store these in a Settings collection

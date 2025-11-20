@@ -29,6 +29,7 @@ export interface IUser extends Document {
   username: string;
   password: string;
   role: UserRole;
+  roles: string[]; // For fine-grained permissions (e.g., ['reader', 'admin'])
   name?: string;
   profile?: string;
   bio?: string;
@@ -36,6 +37,8 @@ export interface IUser extends Document {
   location?: string;
   socials?: SocialLinks;
   isVerified: boolean;
+  isBanned: boolean;
+  banReason?: string;
   verificationToken?: string;
   verificationExpires?: Date;
   resetToken?: string;
@@ -78,6 +81,11 @@ const userSchema = new Schema<IUser>(
       enum: ["writer", "reader"],
       default: "reader",
       required: true,
+    },
+    roles: {
+      type: [String],
+      default: [],
+      index: true,
     },
     name: {
       type: String,
@@ -140,6 +148,15 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
       index: true,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    banReason: {
+      type: String,
+      trim: true,
     },
     verificationToken: {
       type: String,

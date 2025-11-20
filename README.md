@@ -1635,4 +1635,131 @@ npm run build -w apps/api
 npm run seed -w apps/api
 ```
 
+## 🚀 Production Readiness
+
+TrueTale is production-ready with comprehensive security, monitoring, and deployment features. See [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) for the complete checklist.
+
+### Key Features
+
+#### Security
+- ✅ Input validation with Zod on all endpoints
+- ✅ Rate limiting (auth: 5/15m, general: 30/min, costly: 10/min)
+- ✅ XSS prevention via input sanitization
+- ✅ CORS configured for frontend domain only
+- ✅ Helmet.js security headers
+- ✅ JWT authentication with refresh tokens
+- ✅ Role-based access control (RBAC)
+
+#### Monitoring & Observability
+- ✅ Structured JSON logging
+- ✅ Global error handler with Sentry integration points
+- ✅ Health checks (`/health`, `/ready`, `/alive`)
+- ✅ Request logging (method, path, status, duration)
+- ✅ Performance tracking
+
+#### Admin Features
+- ✅ User management (ban/unban with audit trail)
+- ✅ Content moderation (remove books/reviews)
+- ✅ Order management and refunds
+- ✅ Platform analytics and reports
+- ✅ Admin panel UI at `/admin`
+
+#### CI/CD Pipeline
+- ✅ Security audit on all PRs
+- ✅ Automated testing and linting
+- ✅ Type checking and build verification
+- ✅ Staging auto-deployment
+- ✅ Production deployment with manual approval
+
+### Environment Variables
+
+Copy the example files and configure for your environment:
+
+```bash
+# Backend
+cp apps/api/.env.example apps/api/.env
+
+# Frontend
+cp apps/web/.env.example apps/web/.env
+```
+
+Required variables:
+- `MONGO_URI` - MongoDB connection string
+- `JWT_SECRET` - JWT signing secret
+- `STRIPE_SECRET_KEY` - Stripe API key
+- `AWS_S3_BUCKET` - S3 bucket for file storage
+
+See `.env.example` files for complete list.
+
+### Deployment
+
+#### Quick Deploy
+
+The CI/CD pipeline automatically:
+1. Runs security audits
+2. Tests and type checks all code
+3. Deploys `develop` → staging (auto)
+4. Deploys `main` → production (manual approval)
+
+#### Manual Deploy
+
+```bash
+# Build all workspaces
+npm run build:all
+
+# Deploy API (example with Railway)
+cd apps/api
+railway up
+
+# Deploy Web (example with Vercel)
+cd apps/web
+vercel deploy --prod
+```
+
+### Health Monitoring
+
+Check system health:
+
+```bash
+curl https://api.truetale.app/health
+```
+
+Response includes:
+- Database connection status
+- Memory usage
+- Uptime
+- Response time
+
+### Admin Access
+
+Create an admin user:
+
+```bash
+# In MongoDB
+db.users.updateOne(
+  { email: "admin@truetale.app" },
+  { $set: { roles: ["admin"] } }
+)
+```
+
+Then access the admin panel at `/admin`.
+
+## 📊 Performance
+
+- **Database indexes** on all query fields
+- **Lean queries** for read-heavy operations
+- **Pagination** on all list endpoints
+- **Response compression** (gzip)
+- **Aggregation pipelines** for complex queries
+
+## 🔒 Security Considerations
+
+- Rotate JWT secrets monthly
+- Review admin access quarterly
+- Update dependencies weekly (`npm audit`)
+- Monitor error logs for suspicious activity
+- Backup database daily
+
+See [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) for complete security guidelines.
+
 Feel free to extend the functionality or connect additional data sources to evolve the platform further.

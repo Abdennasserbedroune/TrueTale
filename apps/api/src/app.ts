@@ -17,6 +17,10 @@ import { createOrderRoutes } from "./routes/orderRoutes";
 import { createProfileRoutes } from "./routes/profileRoutes";
 import { createBookRoutes } from "./routes/bookRoutes";
 import { createDashboardRoutes } from "./routes/dashboardRoutes";
+import { createAdminRoutes } from "./routes/adminRoutes";
+import { healthRoutes } from "./routes/healthRoutes";
+import { sanitizeInput, errorHandler } from "./middleware";
+import { logger } from "./lib/logger";
 
 interface ErrorResponse {
   message: string;
@@ -60,6 +64,9 @@ export function createApp(
   // Compression middleware
   app.use(compression());
 
+  // Input sanitization (XSS prevention)
+  app.use(sanitizeInput);
+
   // Rate limiting
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -74,10 +81,24 @@ export function createApp(
   const tokenService = new TokenService(config.jwtSecret, config.jwtRefreshSecret);
   const feedService = new FeedService();
 
-  // Health check route
-  app.get("/health", (_req: Request, res: Response) => {
-    res.status(StatusCodes.OK).json({ status: "ok" });
+  // Request logging
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      logger.info('Request completed', {
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        duration: `${duration}ms`,
+        ip: req.ip,
+      });
+    });
+    next();
   });
+
+  // Health check routes
+  app.use("/", healthRoutes);
 
   // Auth routes
   app.use("/api/auth", createAuthRoutes(tokenService));
@@ -106,6 +127,9 @@ export function createApp(
   // Dashboard routes (seller + admin)
   app.use("/api/v1/seller/dashboard", createDashboardRoutes(tokenService));
 
+  // Admin routes (comprehensive admin panel)
+  app.use("/api/v1/admin", createAdminRoutes(tokenService));
+
   // 404 handler
   app.use((_req: Request, res: Response) => {
     res.status(StatusCodes.NOT_FOUND).json({
@@ -115,25 +139,7 @@ export function createApp(
   });
 
   // Centralized error handler (must be last)
-  app.use(
-    (
-      err: Error | ErrorResponse,
-      _req: Request,
-      res: Response,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _next: NextFunction
-    ) => {
-      const status = "status" in err ? err.status : StatusCodes.INTERNAL_SERVER_ERROR;
-      const message = err.message || "An unexpected error occurred";
-
-      console.error(`[ERROR] ${status} - ${message}`);
-
-      res.status(status).json({
-        message,
-        status,
-      });
-    }
-  );
+  app.use(errorHandler);
 
   return { app, tokenService, feedService };
 }

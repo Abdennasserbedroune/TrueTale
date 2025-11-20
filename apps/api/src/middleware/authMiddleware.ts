@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { TokenService, TokenPayload } from "../utils/tokenService";
-import { UserRole } from "@truetale/db";
+import { UserRole, User } from "@truetale/db";
+import { logger } from "../lib/logger";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -13,7 +14,7 @@ declare global {
 }
 
 export function createAuthMiddleware(tokenService: TokenService) {
-  const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
+  const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authHeader = req.headers.authorization;
 
@@ -36,15 +37,41 @@ export function createAuthMiddleware(tokenService: TokenService) {
         return;
       }
 
+      // Check if user is banned
+      const user = await User.findById(decoded.userId).select('isBanned banReason roles').lean();
+      
+      if (!user) {
+        res.status(StatusCodes.UNAUTHORIZED).json({
+          message: "User not found",
+          status: StatusCodes.UNAUTHORIZED,
+        });
+        return;
+      }
+
+      if (user.isBanned) {
+        logger.warn('Banned user attempted access', {
+          userId: decoded.userId,
+          banReason: user.banReason,
+        });
+        res.status(StatusCodes.FORBIDDEN).json({
+          message: "Account has been banned",
+          reason: user.banReason || "Policy violation",
+          status: StatusCodes.FORBIDDEN,
+        });
+        return;
+      }
+
       req.user = {
         userId: decoded.userId,
         email: decoded.email,
         username: decoded.username,
         role: decoded.role,
+        roles: user.roles || [],
       };
 
       next();
-    } catch {
+    } catch (err) {
+      logger.error('Authentication failed', { error: err });
       res.status(StatusCodes.UNAUTHORIZED).json({
         message: "Authentication failed",
         status: StatusCodes.UNAUTHORIZED,
