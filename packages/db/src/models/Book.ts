@@ -44,6 +44,7 @@ export interface IBook extends Document {
   };
   
   // Legacy fields (kept for backward compatibility)
+  coverImage?: string; // Legacy field, mapped to coverUrl
   category?: string;
   status: BookStatus; // Keep for backward compatibility
   genres?: string[]; // Keep for backward compatibility
@@ -154,6 +155,10 @@ const bookSchema = new Schema<IBook>(
       },
     },
     // Legacy fields for backward compatibility
+    coverImage: {
+      type: String,
+      trim: true,
+    },
     category: {
       type: String,
       trim: true,
