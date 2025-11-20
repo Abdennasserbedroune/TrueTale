@@ -962,6 +962,364 @@ Returns earnings summary for the authenticated seller.
 - `monthlyEarnings` resets on the first day of each month.
 - `pendingOrders` counts orders with `pending` status.
 
+### Seller Dashboard & Analytics
+
+The dashboard provides comprehensive analytics and payout management for sellers.
+
+#### Get Dashboard Summary
+
+```bash
+GET /api/v1/seller/dashboard/summary
+Authorization: Bearer <access_token>
+```
+
+Returns high-level KPI metrics for the seller dashboard.
+
+**Response (200 OK):**
+
+```json
+{
+  "totalRevenueCents": 116900,
+  "monthlyRevenueCents": 35070,
+  "totalSales": 100,
+  "activeListings": 5
+}
+```
+
+**Notes:**
+
+- Requires authentication.
+- `totalRevenueCents` is lifetime seller proceeds (after platform fee).
+- `monthlyRevenueCents` is current month's earnings.
+- `totalSales` counts all paid orders.
+- `activeListings` counts published books (isDraft: false).
+
+#### Get Revenue Chart Data
+
+```bash
+GET /api/v1/seller/dashboard/revenue-chart?months=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns monthly revenue history for chart visualization.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "month": "2024-01",
+    "revenue": 15000
+  },
+  {
+    "month": "2024-02",
+    "revenue": 22000
+  }
+]
+```
+
+**Query Parameters:**
+
+- `months` – Number of months to retrieve (default: 12, max: 24)
+
+**Notes:**
+
+- Requires authentication.
+- Revenue values are in cents.
+- Returns data for each month, including months with zero revenue.
+
+#### Get Top Selling Books
+
+```bash
+GET /api/v1/seller/dashboard/top-books?limit=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns best-selling books ranked by revenue.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "title": "The Great Adventure",
+    "slug": "the-great-adventure",
+    "totalSales": 45,
+    "totalRevenue": 52650
+  }
+]
+```
+
+**Query Parameters:**
+
+- `limit` – Number of books to return (default: 5, max: 20)
+
+**Notes:**
+
+- Requires authentication.
+- Sorted by total revenue (highest first).
+- Only includes books with at least one sale.
+
+#### Get Recent Orders
+
+```bash
+GET /api/v1/seller/dashboard/recent-orders?limit=<number>&offset=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns recent paid orders with buyer and book details.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "_id": "507f1f77bcf86cd799439013",
+    "bookTitle": "The Great Adventure",
+    "bookSlug": "the-great-adventure",
+    "buyerName": "John Doe",
+    "buyerUsername": "johndoe",
+    "amountCents": 1299,
+    "sellerProceedsCents": 1169,
+    "status": "paid",
+    "createdAt": "2024-01-15T10:30:00.000Z"
+  }
+]
+```
+
+**Query Parameters:**
+
+- `limit` – Number of orders to return (default: 10, max: 100)
+- `offset` – Number of orders to skip (default: 0)
+
+**Notes:**
+
+- Requires authentication.
+- Only includes paid orders.
+- Sorted by creation date (newest first).
+
+#### Get Payout Information
+
+```bash
+GET /api/v1/seller/dashboard/payout-info
+Authorization: Bearer <access_token>
+```
+
+Returns pending payout amount and eligibility status.
+
+**Response (200 OK):**
+
+```json
+{
+  "amountCents": 11690,
+  "eligible": true,
+  "message": "Ready to request payout",
+  "unpaidOrderCount": 10,
+  "settings": {
+    "frequency": "weekly",
+    "minimumThreshold": 5000
+  },
+  "stripeConnected": true,
+  "stripeOnboardingComplete": true
+}
+```
+
+**Notes:**
+
+- Requires authentication.
+- `eligible` is true when amount meets minimum threshold.
+- `unpaidOrderCount` excludes orders already included in payouts.
+- Default minimum threshold is $50.00 (5000 cents).
+
+#### Get Payout History
+
+```bash
+GET /api/v1/seller/dashboard/payouts?limit=<number>&offset=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns paginated history of completed and pending payouts.
+
+**Response (200 OK):**
+
+```json
+{
+  "payouts": [
+    {
+      "_id": "507f1f77bcf86cd799439014",
+      "amountCents": 50000,
+      "currency": "USD",
+      "status": "paid",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "paidAt": "2024-01-03T00:00:00.000Z",
+      "stripePayoutId": "po_1234567890"
+    }
+  ],
+  "total": 5,
+  "limit": 20,
+  "offset": 0
+}
+```
+
+**Query Parameters:**
+
+- `limit` – Number of payouts to return (default: 20, max: 100)
+- `offset` – Number of payouts to skip (default: 0)
+
+**Notes:**
+
+- Requires authentication.
+- Sorted by creation date (newest first).
+- Status can be: `pending`, `in_transit`, `paid`, or `failed`.
+
+#### Update Payout Settings
+
+```bash
+PUT /api/v1/seller/dashboard/payout-settings
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "frequency": "monthly",
+  "minimumThreshold": 10000
+}
+```
+
+Updates seller's payout preferences.
+
+**Response (200 OK):**
+
+```json
+{
+  "frequency": "monthly",
+  "minimumThreshold": 10000
+}
+```
+
+**Request Body:**
+
+- `frequency` – Payout frequency: `daily`, `weekly`, or `monthly` (optional)
+- `minimumThreshold` – Minimum payout amount in cents (optional)
+
+**Notes:**
+
+- Requires authentication.
+- Both fields are optional; only provided fields will be updated.
+- `minimumThreshold` must be a positive integer.
+
+### Admin Endpoints
+
+Admin-only endpoints for platform management.
+
+#### Get Platform Settings
+
+```bash
+GET /api/v1/seller/dashboard/admin/settings
+Authorization: Bearer <access_token>
+```
+
+Returns current platform configuration.
+
+**Response (200 OK):**
+
+```json
+{
+  "platformFeePercent": 10,
+  "minimumPayoutAmount": 5000,
+  "payoutFrequency": "weekly"
+}
+```
+
+#### Update Platform Fee
+
+```bash
+PUT /api/v1/seller/dashboard/admin/platform-fee
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "feePercent": 15
+}
+```
+
+Updates the platform fee percentage.
+
+**Response (200 OK):**
+
+```json
+{
+  "platformFeePercent": 15,
+  "message": "Platform fee updated successfully"
+}
+```
+
+**Notes:**
+
+- Requires admin role.
+- `feePercent` must be between 0 and 100.
+
+#### Get Earnings Report
+
+```bash
+GET /api/v1/seller/dashboard/admin/earnings-report
+Authorization: Bearer <access_token>
+```
+
+Returns platform-wide earnings statistics.
+
+**Response (200 OK):**
+
+```json
+{
+  "totalGrossRevenue": 1000000,
+  "platformFeeRevenue": 100000,
+  "sellerPayouts": 900000,
+  "totalOrders": 500,
+  "totalUsers": 1200,
+  "totalBooks": 150
+}
+```
+
+**Notes:**
+
+- Requires admin role.
+- All revenue values are in cents.
+
+#### Get Top Sellers
+
+```bash
+GET /api/v1/seller/dashboard/admin/top-sellers?limit=<number>
+Authorization: Bearer <access_token>
+```
+
+Returns top-earning sellers for platform analytics.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "_id": "507f1f77bcf86cd799439012",
+    "username": "author_name",
+    "name": "Author Name",
+    "email": "author@example.com",
+    "totalRevenue": 150000,
+    "totalSales": 100,
+    "platformFees": 15000
+  }
+]
+```
+
+**Query Parameters:**
+
+- `limit` – Number of sellers to return (default: 10, max: 50)
+
+**Notes:**
+
+- Requires admin role.
+- Sorted by total revenue (highest first).
+
 ### Payment Flow Summary
 
 The complete payment flow works as follows:
