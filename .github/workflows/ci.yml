@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, chore-monorepo-setup-ci-cd]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongo:
+        image: mongo:latest
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Typecheck all workspaces
+        run: npm run typecheck:all
+      
+      - name: Lint all workspaces
+        run: npm run lint:all
+      
+      - name: Run tests
+        run: npm run test:all
+        env:
+          MONGO_URI: mongodb://localhost:27017/truetale-test
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret
+          CLIENT_ORIGIN: http://localhost:3000
+      
+      - name: Build all workspaces
+        run: npm run build:all
+      
+      - name: Upload coverage (optional)
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false

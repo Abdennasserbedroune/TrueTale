@@ -2,6 +2,61 @@
 
 A Next.js application showcasing discovery surfaces and community tooling for independent writers. The experience includes public writer profiles, a searchable marketplace, collaborative engagement features, and an activity dashboard.
 
+## 📁 Monorepo Structure
+
+This project uses npm workspaces to manage a monorepo with shared packages. The structure is as follows:
+
+```
+truetale/
+├── apps/
+│   ├── web/                    # Next.js frontend
+│   │   ├── src/
+│   │   │   ├── app/           # Next.js app router pages
+│   │   │   ├── components/    # React components
+│   │   │   └── lib/           # Frontend utilities
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   └── api/                    # Express backend
+│       ├── src/
+│       │   ├── routes/        # API route handlers
+│       │   ├── controllers/   # Business logic
+│       │   ├── middleware/    # Express middleware
+│       │   └── validation/    # Request validation
+│       ├── package.json
+│       └── tsconfig.json
+├── packages/
+│   ├── types/                  # Shared Zod schemas + TypeScript types
+│   │   ├── src/
+│   │   │   ├── user.ts        # User schemas
+│   │   │   ├── book.ts        # Book schemas
+│   │   │   ├── order.ts       # Order schemas
+│   │   │   └── index.ts       # Barrel exports
+│   │   └── package.json
+│   ├── db/                     # MongoDB models + connection
+│   │   ├── src/
+│   │   │   ├── models/        # Mongoose models
+│   │   │   ├── connection.ts  # Database connection
+│   │   │   └── index.ts
+│   │   └── package.json
+│   └── utils/                  # Common utilities
+│       ├── src/
+│       │   ├── pagination.ts  # Pagination helpers
+│       │   ├── currency.ts    # Currency formatting
+│       │   ├── date.ts        # Date utilities
+│       │   └── index.ts
+│       └── package.json
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions CI/CD
+└── package.json                # Root workspace config
+```
+
+### Shared Packages
+
+- **@truetale/types**: Zod validation schemas and TypeScript types shared between frontend and backend
+- **@truetale/db**: MongoDB models and database connection (used by backend)
+- **@truetale/utils**: Common utilities like pagination, currency formatting, and date helpers
+
 ## Features
 
 - **Public writer profiles** with SEO-friendly routing, highlighting bios, interests, publications, and public drafts.
@@ -12,91 +67,110 @@ A Next.js application showcasing discovery surfaces and community tooling for in
 
 ## Getting Started
 
-### Frontend Only
+### Prerequisites
+
+- **Node.js 18+** (LTS recommended)
+- **MongoDB** (local installation or MongoDB Atlas)
+- **npm** (comes with Node.js)
+
+### Installation
+
+1. Clone the repository and install all workspace dependencies:
 
 ```bash
 npm install
-npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to explore the experience. The home page links to the profiles, marketplace, dashboard, and messaging hub.
+This will install dependencies for all workspaces (apps/web, apps/api, and all shared packages).
 
-### Full Stack (Frontend + Backend)
+### Running the Application
 
-First, install dependencies:
+#### Option 1: Run All Services (Recommended)
 
 ```bash
-npm install
+npm run dev:all
 ```
 
-Then, create a `.env.local` file in the project root with the following variables:
+This starts both the frontend and backend concurrently.
 
+#### Option 2: Run Services Separately
+
+In separate terminal windows:
+
+```bash
+# Terminal 1 - Frontend (Next.js)
+npm run dev:web
+
+# Terminal 2 - Backend (Express API)
+npm run dev:api
 ```
-# Frontend configuration
+
+The services will be available at:
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:5000](http://localhost:5000)
+
+### Environment Variables
+
+#### Frontend (`apps/web/.env.local`)
+
+Create `apps/web/.env.local`:
+
+```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Next, set up backend environment variables by creating a `.env` file in the `server/` directory. You can use `.env.example` as a template:
+#### Backend (`apps/api/.env`)
 
-```bash
-cp server/.env.example server/.env
+Create `apps/api/.env`:
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/truetale
+CLIENT_ORIGIN=http://localhost:3000
+JWT_SECRET=dev-jwt-secret-key
+JWT_REFRESH_SECRET=dev-jwt-refresh-secret-key
 ```
 
-The default `.env` file should work for local development with MongoDB running on `mongodb://localhost:27017/truetale`. For production or different MongoDB setups, update the `MONGO_URI` and other variables accordingly.
-
-Finally, start both the frontend and backend concurrently:
-
-```bash
-npm run dev:full
-```
-
-This will start:
-
-- **Frontend**: Next.js development server on [http://localhost:3000](http://localhost:3000)
-- **Backend**: Express server on [http://localhost:5000](http://localhost:5000)
-
-Alternatively, run them separately in different terminals:
-
-```bash
-# Terminal 1 - Frontend
-npm run dev
-
-# Terminal 2 - Backend
-npm run server:dev
-```
-
-### Backend Environment Variables
-
-The backend requires the following environment variables (see `server/.env.example` for defaults):
-
-- `NODE_ENV` – Execution environment (default: `development`)
-- `PORT` – Server port (default: `5000`)
-- `MONGO_URI` – MongoDB connection string (default: `mongodb://localhost:27017/truetale`)
-- `CLIENT_ORIGIN` – Allowed CORS origin (default: `http://localhost:3000`)
-- `JWT_SECRET` – JWT signing secret (default: `dev-jwt-secret-key`)
-- `JWT_REFRESH_SECRET` – JWT refresh token secret (default: `dev-jwt-refresh-secret-key`)
+**⚠️ Never commit `.env` files to version control.** Use `.env.local` for local overrides and keep sensitive values secure.
 
 ## Testing
 
-### Frontend Tests
-
-Vitest powers unit coverage for critical logic layers:
+Run tests across all workspaces:
 
 ```bash
-npm run test
+npm run test:all
 ```
 
-The test suite validates marketplace search & filtering, messaging permissions, and engagement interactions (likes, bookmarks, comments).
-
-### Backend Tests
-
-Run backend tests with:
+Or run tests for specific workspaces:
 
 ```bash
-npm run server:test
+# Frontend tests only
+npm run test -w apps/web
+
+# Backend tests only
+npm run test -w apps/api
 ```
 
-The backend test suite includes smoke tests for the `/health` endpoint and comprehensive auth module tests.
+### Test Coverage
+
+- **Frontend**: Vitest-powered unit tests for marketplace search, filtering, messaging permissions, and engagement interactions
+- **Backend**: Integration tests for API endpoints including authentication, book management, orders, and feed activities
+
+## Development Scripts
+
+### Build & Type Checking
+
+```bash
+# Build all workspaces
+npm run build:all
+
+# Type check all workspaces
+npm run typecheck:all
+
+# Lint all workspaces
+npm run lint:all
+```
 
 ## Database Seeding
 
@@ -107,7 +181,7 @@ The platform includes a seeding workflow to populate your development database w
 To populate your database with sample users, books, drafts, stories, reviews, follows, and feed activities:
 
 ```bash
-npm run server:seed
+npm run seed -w apps/api
 ```
 
 This will:
@@ -136,7 +210,7 @@ To completely reset your database and reseed from scratch:
 
 ```bash
 # The seed script automatically clears existing data before seeding
-npm run server:seed
+npm run seed -w apps/api
 ```
 
 **Note**: The seeding process will delete all existing data in the following collections: `users`, `books`, `drafts`, `stories`, `reviews`, `follows`, and `feedactivities`. Only run this on development databases.
@@ -711,55 +785,86 @@ To mark orders as paid during development, update the order status directly in t
 await Order.findByIdAndUpdate(orderId, { status: 'paid' });
 ```
 
+## CI/CD Pipeline
+
+This project includes a GitHub Actions CI/CD pipeline that runs on every push and pull request. The pipeline:
+
+1. **Type Checks**: Validates TypeScript types across all workspaces
+2. **Linting**: Runs ESLint on all code
+3. **Tests**: Executes unit and integration tests with MongoDB test database
+4. **Build**: Compiles all workspaces to ensure production builds succeed
+
+The CI pipeline configuration is located at `.github/workflows/ci.yml`.
+
+### Running CI Checks Locally
+
+Before pushing code, you can run the same checks locally:
+
+```bash
+# Type check
+npm run typecheck:all
+
+# Lint
+npm run lint:all
+
+# Test
+npm run test:all
+
+# Build
+npm run build:all
+```
+
 ## Project Structure
 
-### Frontend
+The monorepo is organized into apps and shared packages:
 
-- `app/` – App Router pages for home, marketplace, writers, works, dashboard, and messages.
-- `components/` – Reusable UI components such as work cards, writer cards, comment threads, and engagement panels.
-- `data/` – Mock dataset representing writers, works, comments, messages, notifications, and marketplace events.
-- `lib/` – Domain logic for discovery, engagement, messaging, and session helpers.
-- `tests/` – Vitest suites covering discovery, messaging, and engagement rules.
+### Apps
 
-### Backend
+- **`apps/web/`** – Next.js frontend
+  - `src/app/` – Next.js App Router pages
+  - `src/components/` – Reusable React components
+  - `src/lib/` – Frontend utilities and helpers
+  - `tests/` – Frontend unit tests
 
-- `server/src/` – Express backend source code.
-  - `config/` – Environment and database configuration.
-  - `models/` – Mongoose schemas (User, Book, Draft, Story, FeedActivity, Review, Follow, Order).
-  - `controllers/` – Request handlers (auth, writer content management, order processing).
-  - `middleware/` – Auth middleware (requireAuth, requireRole).
-  - `routes/` – Express route definitions.
-  - `utils/` – Token and feed service stubs, shared helpers.
-  - `validation/` – Zod validation schemas for auth, writer flows, and order processing.
-  - `index.ts` – Server entry point with graceful shutdown handling.
-  - `app.ts` – Express app with middleware setup (CORS, Helmet, rate limiting, error handling).
-- `server/tests/` – Backend Vitest suites.
+- **`apps/api/`** – Express backend API
+  - `src/routes/` – API route definitions
+  - `src/controllers/` – Business logic and request handlers
+  - `src/middleware/` – Auth and validation middleware
+  - `src/validation/` – Request validation schemas
+  - `src/config/` – Configuration management
+  - `tests/` – Backend integration tests
 
-## Scripts
+### Packages
 
-### Frontend
+- **`packages/types/`** – Shared TypeScript types and Zod schemas used by both frontend and backend
+- **`packages/db/`** – MongoDB models and database connection utilities
+- **`packages/utils/`** – Common utilities (pagination, currency, dates)
 
-- `npm run dev` – Start the Next.js development server.
-- `npm run build` – Build the production bundle.
-- `npm run start` – Serve the production build.
-- `npm run test` – Execute frontend Vitest unit tests.
-- `npm run lint` – Run ESLint on the frontend.
+## Available Scripts
 
-### Backend
+### Root Scripts
 
-- `npm run server:dev` – Start the backend Express server in development mode with file watching.
-- `npm run server:start` – Start the production backend server.
-- `npm run server:build` – Build the TypeScript backend to JavaScript.
-- `npm run server:test` – Execute backend Vitest unit tests.
-- `npm run server:lint` – Run ESLint on the backend.
+- `npm run dev:all` – Start all workspaces in development mode
+- `npm run dev:web` – Start only the frontend
+- `npm run dev:api` – Start only the backend API
+- `npm run build:all` – Build all workspaces
+- `npm run test:all` – Run tests for all workspaces
+- `npm run typecheck:all` – Type check all workspaces
+- `npm run lint:all` – Lint all workspaces
 
-### Concurrent
+### Workspace-Specific Scripts
 
-- `npm run dev:full` – Start both frontend and backend development servers concurrently.
+You can run scripts for specific workspaces using the `-w` flag:
 
-### Utility
+```bash
+# Run tests for the web app only
+npm run test -w apps/web
 
-- `npm run format` – Format all code with Prettier.
-- `npm run format:check` – Check code formatting without making changes.
+# Build the API only
+npm run build -w apps/api
 
-Feel free to extend the mocks or connect real data sources to evolve the platform further.
+# Seed the database
+npm run seed -w apps/api
+```
+
+Feel free to extend the functionality or connect additional data sources to evolve the platform further.

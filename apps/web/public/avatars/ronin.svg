@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Ronin Gale avatar</title>
+  <defs>
+    <linearGradient id="roninGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#22c55e" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#roninGradient)" />
+  <circle cx="32" cy="26" r="12" fill="#fefce8" opacity="0.9" />
+  <path d="M16 54c4-9 11-14 16-14s12 5 16 14" fill="#fefce8" opacity="0.85" />
+</svg>
