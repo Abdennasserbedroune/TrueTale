@@ -12,14 +12,28 @@ export interface SocialLinks {
   youtube?: string;
 }
 
+export interface NotificationPreferences {
+  emailUpdates?: boolean;
+  newFollowers?: boolean;
+  bookReviews?: boolean;
+  orderNotifications?: boolean;
+}
+
+export interface PayoutSettings {
+  frequency: "daily" | "weekly" | "monthly";
+  minimumThreshold: number;
+}
+
 export interface IUser extends Document {
   email: string;
   username: string;
   password: string;
   role: UserRole;
+  name?: string;
   profile?: string;
   bio?: string;
   avatar?: string;
+  location?: string;
   socials?: SocialLinks;
   isVerified: boolean;
   verificationToken?: string;
@@ -27,6 +41,11 @@ export interface IUser extends Document {
   resetToken?: string;
   resetExpires?: Date;
   refreshTokens: Array<{ token: string; expiresAt: Date }>;
+  stripeAccountId?: string;
+  stripeOnboardingComplete?: boolean;
+  payoutSettings?: PayoutSettings;
+  notificationPreferences?: NotificationPreferences;
+  deletionRequestedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -60,6 +79,10 @@ const userSchema = new Schema<IUser>(
       default: "reader",
       required: true,
     },
+    name: {
+      type: String,
+      trim: true,
+    },
     profile: {
       type: String,
       trim: true,
@@ -67,8 +90,13 @@ const userSchema = new Schema<IUser>(
     bio: {
       type: String,
       trim: true,
+      maxlength: 500,
     },
     avatar: {
+      type: String,
+      trim: true,
+    },
+    location: {
       type: String,
       trim: true,
     },
@@ -79,6 +107,34 @@ const userSchema = new Schema<IUser>(
       facebook: { type: String, trim: true },
       tiktok: { type: String, trim: true },
       youtube: { type: String, trim: true },
+    },
+    stripeAccountId: {
+      type: String,
+      trim: true,
+    },
+    stripeOnboardingComplete: {
+      type: Boolean,
+      default: false,
+    },
+    payoutSettings: {
+      frequency: {
+        type: String,
+        enum: ["daily", "weekly", "monthly"],
+        default: "weekly",
+      },
+      minimumThreshold: {
+        type: Number,
+        default: 5000,
+      },
+    },
+    notificationPreferences: {
+      emailUpdates: { type: Boolean, default: true },
+      newFollowers: { type: Boolean, default: true },
+      bookReviews: { type: Boolean, default: true },
+      orderNotifications: { type: Boolean, default: true },
+    },
+    deletionRequestedAt: {
+      type: Date,
     },
     isVerified: {
       type: Boolean,

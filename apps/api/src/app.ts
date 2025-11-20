@@ -14,6 +14,7 @@ import { createWriterRoutes } from "./routes/writerRoutes";
 import { createMarketplaceRoutes } from "./routes/marketplaceRoutes";
 import { createFeedRoutes } from "./routes/feedRoutes";
 import { createOrderRoutes } from "./routes/orderRoutes";
+import { createProfileRoutes } from "./routes/profileRoutes";
 
 interface ErrorResponse {
   message: string;
@@ -72,6 +73,9 @@ export function createApp(
 
   // Auth routes
   app.use("/api/auth", createAuthRoutes(tokenService));
+
+  // Profile routes
+  app.use("/api/users", createProfileRoutes(tokenService));
 
   // Reader routes
   app.use("/api", createReaderRoutes(tokenService, feedService));
