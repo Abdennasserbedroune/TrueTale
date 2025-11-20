@@ -5,7 +5,7 @@ import { Express } from "express";
 import { createApp } from "../src/app";
 import { loadEnv } from "../src/config/env";
 import { initializeDB, closeDB } from "../src/config/db";
-import { User } from "../src/models/User";
+import { User } from "@truetale/db";
 
 describe("Auth Module", () => {
   let app: Express;
@@ -34,15 +34,14 @@ describe("Auth Module", () => {
       });
 
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty("message", "User registered successfully");
-      expect(response.body).toHaveProperty("accessToken");
-      expect(response.body.user).toMatchObject({
-        email: "test@example.com",
-        username: "testuser",
-        role: "reader",
-      });
-      expect(response.body.user).not.toHaveProperty("password");
-      expect(response.headers["set-cookie"]).toBeDefined();
+      expect(response.body.message).toContain("Registration successful");
+      expect(response.body).toHaveProperty("userId");
+      expect(response.body).not.toHaveProperty("accessToken");
+
+      const user = await User.findOne({ email: "test@example.com" });
+      expect(user).toBeTruthy();
+      expect(user?.isVerified).toBe(false);
+      expect(user?.verificationToken).toBeTruthy();
     });
 
     it("should register a writer with specified role", async () => {
@@ -54,7 +53,10 @@ describe("Auth Module", () => {
       });
 
       expect(response.status).toBe(201);
-      expect(response.body.user.role).toBe("writer");
+      expect(response.body.message).toContain("Registration successful");
+
+      const user = await User.findOne({ email: "writer2@example.com" });
+      expect(user?.role).toBe("writer");
     });
 
     it("should reject registration with duplicate email", async () => {
@@ -132,6 +134,12 @@ describe("Auth Module", () => {
         username: "testuser",
         password: "password123",
       });
+
+      const user = await User.findOne({ email: "test@example.com" });
+      if (user) {
+        user.isVerified = true;
+        await user.save();
+      }
     });
 
     it("should login with valid credentials", async () => {
@@ -148,6 +156,23 @@ describe("Auth Module", () => {
         username: "testuser",
       });
       expect(response.headers["set-cookie"]).toBeDefined();
+    });
+
+    it("should reject login with unverified email", async () => {
+      await User.deleteMany({});
+      await request(app).post("/api/auth/register").send({
+        email: "unverified@example.com",
+        username: "unverifieduser",
+        password: "password123",
+      });
+
+      const response = await request(app).post("/api/auth/login").send({
+        email: "unverified@example.com",
+        password: "password123",
+      });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain("verify your email");
     });
 
     it("should reject login with invalid email", async () => {
@@ -191,13 +216,24 @@ describe("Auth Module", () => {
 
   describe("POST /api/auth/refresh", () => {
     it("should refresh access token with valid refresh token", async () => {
-      const registerResponse = await request(app).post("/api/auth/register").send({
+      await request(app).post("/api/auth/register").send({
         email: "test@example.com",
         username: "testuser",
         password: "password123",
       });
 
-      const cookies = registerResponse.headers["set-cookie"];
+      const user = await User.findOne({ email: "test@example.com" });
+      if (user) {
+        user.isVerified = true;
+        await user.save();
+      }
+
+      const loginResponse = await request(app).post("/api/auth/login").send({
+        email: "test@example.com",
+        password: "password123",
+      });
+
+      const cookies = loginResponse.headers["set-cookie"];
 
       const response = await request(app).post("/api/auth/refresh").set("Cookie", cookies);
 
@@ -211,6 +247,219 @@ describe("Auth Module", () => {
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe("No refresh token provided");
+    });
+  });
+
+  describe("POST /api/auth/verify", () => {
+    it("should verify email with valid token", async () => {
+      await request(app).post("/api/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      const user = await User.findOne({ email: "test@example.com" });
+      expect(user).toBeTruthy();
+      expect(user?.isVerified).toBe(false);
+
+      const verificationToken = user?.verificationToken;
+
+      const response = await request(app).post("/api/auth/verify").send({
+        token: verificationToken,
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain("verified successfully");
+
+      const updatedUser = await User.findOne({ email: "test@example.com" });
+      expect(updatedUser?.isVerified).toBe(true);
+      expect(updatedUser?.verificationToken).toBeUndefined();
+    });
+
+    it("should reject verification with invalid token", async () => {
+      const response = await request(app).post("/api/auth/verify").send({
+        token: "invalid-token",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("Invalid or expired");
+    });
+
+    it("should reject verification with expired token", async () => {
+      await request(app).post("/api/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      const user = await User.findOne({ email: "test@example.com" });
+      if (user) {
+        user.verificationExpires = new Date(Date.now() - 1000);
+        await user.save();
+      }
+
+      const response = await request(app).post("/api/auth/verify").send({
+        token: user?.verificationToken,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("Invalid or expired");
+    });
+  });
+
+  describe("GET /api/auth/me", () => {
+    it("should return current user with valid token", async () => {
+      await request(app).post("/api/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      const user = await User.findOne({ email: "test@example.com" });
+      if (user) {
+        user.isVerified = true;
+        await user.save();
+      }
+
+      const loginResponse = await request(app).post("/api/auth/login").send({
+        email: "test@example.com",
+        password: "password123",
+      });
+
+      const accessToken = loginResponse.body.accessToken;
+
+      const response = await request(app)
+        .get("/api/auth/me")
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toMatchObject({
+        email: "test@example.com",
+        username: "testuser",
+      });
+      expect(response.body.user).not.toHaveProperty("password");
+    });
+
+    it("should reject request without token", async () => {
+      const response = await request(app).get("/api/auth/me");
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toContain("No token provided");
+    });
+
+    it("should reject request with invalid token", async () => {
+      const response = await request(app)
+        .get("/api/auth/me")
+        .set("Authorization", "Bearer invalid-token");
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe("POST /api/auth/forgot", () => {
+    it("should send password reset email for existing user", async () => {
+      await request(app).post("/api/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      const response = await request(app).post("/api/auth/forgot").send({
+        email: "test@example.com",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain("password reset link");
+
+      const user = await User.findOne({ email: "test@example.com" });
+      expect(user?.resetToken).toBeTruthy();
+      expect(user?.resetExpires).toBeTruthy();
+    });
+
+    it("should return success even for non-existent email", async () => {
+      const response = await request(app).post("/api/auth/forgot").send({
+        email: "nonexistent@example.com",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain("password reset link");
+    });
+  });
+
+  describe("POST /api/auth/reset", () => {
+    it("should reset password with valid token", async () => {
+      await request(app).post("/api/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      const user = await User.findOne({ email: "test@example.com" });
+      if (user) {
+        user.isVerified = true;
+        await user.save();
+      }
+
+      await request(app).post("/api/auth/forgot").send({
+        email: "test@example.com",
+      });
+
+      const updatedUser = await User.findOne({ email: "test@example.com" });
+      const resetToken = updatedUser?.resetToken;
+
+      const response = await request(app).post("/api/auth/reset").send({
+        token: resetToken,
+        newPassword: "newpassword123",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain("Password reset successful");
+
+      const finalUser = await User.findOne({ email: "test@example.com" });
+      expect(finalUser?.resetToken).toBeUndefined();
+
+      const loginResponse = await request(app).post("/api/auth/login").send({
+        email: "test@example.com",
+        password: "newpassword123",
+      });
+
+      expect(loginResponse.status).toBe(200);
+    });
+
+    it("should reject reset with invalid token", async () => {
+      const response = await request(app).post("/api/auth/reset").send({
+        token: "invalid-token",
+        newPassword: "newpassword123",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("Invalid or expired");
+    });
+
+    it("should reject reset with expired token", async () => {
+      await request(app).post("/api/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      await request(app).post("/api/auth/forgot").send({
+        email: "test@example.com",
+      });
+
+      const user = await User.findOne({ email: "test@example.com" });
+      if (user) {
+        user.resetExpires = new Date(Date.now() - 1000);
+        await user.save();
+      }
+
+      const response = await request(app).post("/api/auth/reset").send({
+        token: user?.resetToken,
+        newPassword: "newpassword123",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("Invalid or expired");
     });
   });
 

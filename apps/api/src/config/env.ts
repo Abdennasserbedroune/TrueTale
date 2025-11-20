@@ -5,6 +5,7 @@ export interface EnvConfig {
   clientOrigin: string;
   jwtSecret: string;
   jwtRefreshSecret: string;
+  frontendUrl: string;
 }
 
 function getEnvVar(key: string, defaultValue?: string): string {
@@ -22,6 +23,7 @@ export function loadEnv(): EnvConfig {
   const clientOrigin = getEnvVar("CLIENT_ORIGIN", "http://localhost:3000");
   const jwtSecret = getEnvVar("JWT_SECRET", "dev-jwt-secret-key");
   const jwtRefreshSecret = getEnvVar("JWT_REFRESH_SECRET", "dev-jwt-refresh-secret-key");
+  const frontendUrl = getEnvVar("FRONTEND_URL", "http://localhost:3000");
 
   return {
     port,
@@ -30,5 +32,6 @@ export function loadEnv(): EnvConfig {
     clientOrigin,
     jwtSecret,
     jwtRefreshSecret,
+    frontendUrl,
   };
 }
