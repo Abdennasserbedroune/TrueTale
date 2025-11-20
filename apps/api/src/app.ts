@@ -43,8 +43,14 @@ export function createApp(
     })
   );
 
-  // Body parsing middleware
-  app.use(express.json());
+  // Body parsing middleware (skip for Stripe webhook)
+  app.use((req, res, next) => {
+    if (req.originalUrl === "/api/webhooks/stripe") {
+      next();
+    } else {
+      express.json()(req, res, next);
+    }
+  });
   app.use(express.urlencoded({ extended: true }));
 
   // Cookie parser middleware
@@ -85,7 +91,7 @@ export function createApp(
   app.use("/api", createReaderRoutes(tokenService, feedService));
 
   // Order routes
-  app.use("/api", createOrderRoutes(tokenService));
+  app.use("/api", createOrderRoutes(tokenService, config));
 
   // Writer routes
   app.use("/api/writer", createWriterRoutes(tokenService, feedService));

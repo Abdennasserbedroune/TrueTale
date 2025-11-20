@@ -10,3 +10,4 @@ export * from "./models/Follow";
 export * from "./models/Story";
 export * from "./models/Draft";
 export * from "./models/FeedActivity";
+export * from "./models/Payout";

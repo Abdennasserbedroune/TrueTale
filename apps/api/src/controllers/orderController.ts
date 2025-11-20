@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
+import Stripe from "stripe";
+import AWS from "aws-sdk";
 import { ZodError } from "zod";
-import { Book, Order, User, IBook, IOrder, IUser } from "../models";
+import { Book, Order, User, IBook, IOrder, IUser } from "@truetale/db";
 import { createOrderSchema, paginationQuerySchema, idParamsSchema } from "../validation/orderValidation";
+import { EnvConfig } from "../config/env";
 
 const { Types } = mongoose;
 
@@ -72,6 +75,7 @@ type PurchaseResponse = {
     avatar?: string;
   };
   purchasedAt: string;
+  downloadUrl?: string;
 };
 
 const formatValidationError = (error: ZodError): ValidationErrorResponse => ({
@@ -88,14 +92,20 @@ const formatError = (message: string, status: number = StatusCodes.INTERNAL_SERV
   status,
 });
 
-export function createOrderController() {
+export function createOrderController(config: EnvConfig) {
+  const stripe = new Stripe(config.stripeSecretKey || "", { apiVersion: "2025-11-17.clover" });
+  const s3 = new AWS.S3({
+    accessKeyId: config.awsAccessKeyId,
+    secretAccessKey: config.awsSecretAccessKey,
+    region: config.awsRegion,
+  });
+
   const getBookCheckout = async (req: Request, res: Response) => {
     try {
       const { userId } = req.user!;
       const { id: bookId } = idParamsSchema.parse(req.params);
 
-      // Find the book and ensure it's published
-      const book = await Book.findById(bookId).populate("writerId");
+      const book = await Book.findById(bookId).populate("authorId");
       if (!book) {
         return res.status(StatusCodes.NOT_FOUND).json(formatError("Book not found"));
       }
@@ -104,10 +114,8 @@ export function createOrderController() {
         return res.status(StatusCodes.FORBIDDEN).json(formatError("Book is not available for purchase"));
       }
 
-      // Type assertion for populated writer
       const writer = (book.authorId as any) as IUser;
 
-      // Check if user already purchased this book
       const existingOrder = await Order.findOne({
         userId: new Types.ObjectId(userId),
         bookId: new Types.ObjectId(bookId),
@@ -147,7 +155,6 @@ export function createOrderController() {
       const { userId } = req.user!;
       const { bookId } = createOrderSchema.parse(req.body);
 
-      // Find the book and ensure it's published
       const book = await Book.findById(bookId);
       if (!book) {
         return res.status(StatusCodes.NOT_FOUND).json(formatError("Book not found"));
@@ -157,7 +164,6 @@ export function createOrderController() {
         return res.status(StatusCodes.FORBIDDEN).json(formatError("Book is not available for purchase"));
       }
 
-      // Check if user already has a paid order for this book
       const existingPaidOrder = await Order.findOne({
         userId: new Types.ObjectId(userId),
         bookId: new Types.ObjectId(bookId),
@@ -168,7 +174,20 @@ export function createOrderController() {
         return res.status(StatusCodes.CONFLICT).json(formatError("You have already purchased this book"));
       }
 
-      // Check for existing pending order and update it, or create new one
+      const platformFeePercent = config.platformFeePercent / 100;
+      const platformFeeCents = Math.round(book.priceCents * platformFeePercent);
+      const sellerProceedsCents = book.priceCents - platformFeeCents;
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: book.priceCents,
+        currency: book.currency.toLowerCase(),
+        metadata: {
+          bookId: bookId.toString(),
+          userId: userId.toString(),
+          writerId: book.authorId.toString(),
+        },
+      });
+
       let order = await Order.findOne({
         userId: new Types.ObjectId(userId),
         bookId: new Types.ObjectId(bookId),
@@ -176,41 +195,34 @@ export function createOrderController() {
       });
 
       if (order) {
-        // Update existing pending order with current price
         order.price = book.priceCents / 100;
+        order.amountCents = book.priceCents;
+        order.currency = book.currency;
+        order.stripePaymentIntentId = paymentIntent.id;
+        order.platformFeeCents = platformFeeCents;
+        order.sellerProceedsCents = sellerProceedsCents;
         await order.save();
       } else {
-        // Create new order
         order = new Order({
           userId: new Types.ObjectId(userId),
           bookId: new Types.ObjectId(bookId),
           writerId: book.authorId,
           price: book.priceCents / 100,
+          amountCents: book.priceCents,
+          currency: book.currency,
+          stripePaymentIntentId: paymentIntent.id,
           status: "pending",
+          platformFeeCents,
+          sellerProceedsCents,
         });
         await order.save();
       }
 
-      // TODO: Add feed activity for purchase when order is paid
-      // await feedService.record({
-      //   userId: new Types.ObjectId(userId),
-      //   type: "purchase_completed",
-      //   metadata: {
-      //     bookId: book._id,
-      //     writerId: book.authorId,
-      //     orderId: order._id,
-      //   },
-      // });
-
       res.status(StatusCodes.CREATED).json({
-        id: (order._id as any).toString(),
-        bookId: order.bookId.toString(),
-        writerId: order.writerId.toString(),
-        price: order.price,
-        status: order.status,
-        clientSecret: `pi_${(order._id as any).toString()}_secret_${Date.now()}`, // Placeholder for Stripe
-        createdAt: order.createdAt.toISOString(),
-        updatedAt: order.updatedAt.toISOString(),
+        orderId: (order._id as any).toString(),
+        clientSecret: paymentIntent.client_secret,
+        amountCents: book.priceCents,
+        bookTitle: book.title,
       });
     } catch (error) {
       if (error instanceof ZodError) {
@@ -218,6 +230,113 @@ export function createOrderController() {
       }
       console.error("Error creating order:", error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(formatError("Failed to create order"));
+    }
+  };
+
+  const getOrder = async (req: Request, res: Response) => {
+    try {
+      const { id } = idParamsSchema.parse(req.params);
+
+      const order = await Order.findById(id).populate("bookId", "title");
+      if (!order) {
+        return res.status(StatusCodes.NOT_FOUND).json(formatError("Order not found"));
+      }
+
+      res.status(StatusCodes.OK).json(order);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(StatusCodes.BAD_REQUEST).json(formatValidationError(error));
+      }
+      console.error("Error fetching order:", error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(formatError("Failed to fetch order"));
+    }
+  };
+
+  const handlePaymentSucceeded = async (paymentIntent: Stripe.PaymentIntent) => {
+    const order = await Order.findOneAndUpdate(
+      { stripePaymentIntentId: paymentIntent.id, status: "pending" },
+      { status: "paid", updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!order) return;
+
+    const book = await Book.findById(order.bookId);
+    if (!book || !book.files.length) return;
+
+    const file = book.files.find(f => f.type !== "sample") || book.files[0];
+    if (!file) return;
+
+    let downloadUrl = "";
+    if (config.awsS3Bucket && config.awsAccessKeyId) {
+      const s3Key = file.url.split("/").slice(-1)[0];
+      downloadUrl = s3.getSignedUrl("getObject", {
+        Bucket: config.awsS3Bucket,
+        Key: s3Key,
+        Expires: 24 * 60 * 60,
+      });
+    } else {
+      downloadUrl = file.url;
+    }
+
+    await Order.updateOne(
+      { _id: order._id },
+      {
+        downloadUrl,
+        downloadUrlExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      }
+    );
+
+    await Book.updateOne({ _id: order.bookId }, { $inc: { "stats.sales": 1 } });
+  };
+
+  const handleStripeWebhook = async (req: Request, res: Response) => {
+    const sig = req.headers["stripe-signature"];
+    if (!sig) {
+      return res.status(StatusCodes.BAD_REQUEST).json(formatError("Missing Stripe signature"));
+    }
+
+    let event: Stripe.Event;
+
+    try {
+      if (config.stripeWebhookSecret) {
+        event = stripe.webhooks.constructEvent(
+          req.body,
+          sig as string,
+          config.stripeWebhookSecret
+        );
+      } else {
+        console.warn("Stripe webhook secret not configured, skipping signature validation");
+        event = JSON.parse(req.body.toString());
+      }
+    } catch (err: any) {
+      console.error("Webhook signature verification failed:", err.message);
+      return res.status(StatusCodes.BAD_REQUEST).json(formatError(`Webhook error: ${err.message}`));
+    }
+
+    try {
+      switch (event.type) {
+        case "payment_intent.succeeded": {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await handlePaymentSucceeded(paymentIntent);
+          break;
+        }
+        case "payment_intent.payment_failed": {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await Order.updateOne(
+            { stripePaymentIntentId: paymentIntent.id },
+            { status: "failed" }
+          );
+          break;
+        }
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.status(StatusCodes.OK).json({ received: true });
+    } catch (error) {
+      console.error("Webhook processing failed:", error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(formatError("Webhook processing failed"));
     }
   };
 
@@ -315,6 +434,7 @@ export function createOrderController() {
             avatar: writer.avatar,
           },
           purchasedAt: order.updatedAt.toISOString(),
+          downloadUrl: order.downloadUrl,
         };
       });
 
@@ -336,50 +456,88 @@ export function createOrderController() {
     }
   };
 
-  const handleStripeWebhook = async (req: Request, res: Response) => {
+  const getSellerOrders = async (req: Request, res: Response) => {
     try {
-      // TODO: Implement Stripe signature validation
-      // const signature = req.headers["stripe-signature"];
-      // if (!signature) {
-      //   return res.status(StatusCodes.BAD_REQUEST).json(formatError("Missing Stripe signature"));
-      // }
-      // 
-      // const event = stripe.webhooks.constructEvent(
-      //   req.body,
-      //   signature,
-      //   process.env.STRIPE_WEBHOOK_SECRET!
-      // );
+      const { userId } = req.user!;
+      const { page = 1, limit = 10 } = paginationQuerySchema.parse(req.query);
 
-      // Log webhook payload for development
-      console.log("Stripe webhook received:", {
-        headers: req.headers,
-        body: req.body,
+      const skip = (page - 1) * limit;
+
+      const orders = await Order.find({ writerId: new Types.ObjectId(userId), status: "paid" })
+        .populate("bookId", "title")
+        .populate("userId", "name email username")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const total = await Order.countDocuments({ writerId: new Types.ObjectId(userId), status: "paid" });
+
+      res.status(StatusCodes.OK).json({
+        data: orders,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       });
-
-      // TODO: Handle different event types
-      // switch (event.type) {
-      //   case "payment_intent.succeeded":
-      //     await handlePaymentSuccess(event.data.object);
-      //     break;
-      //   case "payment_intent.payment_failed":
-      //     await handlePaymentFailure(event.data.object);
-      //     break;
-      //   default:
-      //     console.log(`Unhandled event type: ${event.type}`);
-      // }
-
-      res.status(StatusCodes.OK).json({ received: true });
     } catch (error) {
-      console.error("Error handling Stripe webhook:", error);
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(formatError("Webhook handler failed"));
+      if (error instanceof ZodError) {
+        return res.status(StatusCodes.BAD_REQUEST).json(formatValidationError(error));
+      }
+      console.error("Error getting seller orders:", error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(formatError("Failed to fetch seller orders"));
+    }
+  };
+
+  const getSellerEarnings = async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.user!;
+
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      thisMonth.setHours(0, 0, 0, 0);
+
+      const [totalStats, monthlyStats] = await Promise.all([
+        Order.aggregate([
+          { $match: { writerId: new Types.ObjectId(userId), status: "paid" } },
+          { $group: { _id: null, total: { $sum: "$sellerProceedsCents" }, count: { $sum: 1 } } },
+        ]),
+        Order.aggregate([
+          {
+            $match: {
+              writerId: new Types.ObjectId(userId),
+              status: "paid",
+              createdAt: { $gte: thisMonth },
+            },
+          },
+          { $group: { _id: null, total: { $sum: "$sellerProceedsCents" }, count: { $sum: 1 } } },
+        ]),
+      ]);
+
+      const pendingOrders = await Order.countDocuments({ writerId: new Types.ObjectId(userId), status: "pending" });
+
+      res.status(StatusCodes.OK).json({
+        totalEarnings: totalStats[0]?.total || 0,
+        totalSales: totalStats[0]?.count || 0,
+        monthlyEarnings: monthlyStats[0]?.total || 0,
+        monthlySales: monthlyStats[0]?.count || 0,
+        pendingOrders,
+      });
+    } catch (error) {
+      console.error("Error getting seller earnings:", error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(formatError("Failed to fetch earnings"));
     }
   };
 
   return {
     getBookCheckout,
     createOrder,
+    getOrder,
     getUserOrders,
     getUserPurchases,
+    getSellerOrders,
+    getSellerEarnings,
     handleStripeWebhook,
   };
 }

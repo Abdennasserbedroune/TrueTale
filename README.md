@@ -117,6 +117,7 @@ Create `apps/web/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
 #### Backend (`apps/api/.env`)
@@ -131,6 +132,17 @@ CLIENT_ORIGIN=http://localhost:3000
 FRONTEND_URL=http://localhost:3000
 JWT_SECRET=dev-jwt-secret-key
 JWT_REFRESH_SECRET=dev-jwt-refresh-secret-key
+
+# Stripe Payment Integration
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+PLATFORM_FEE_PERCENT=10
+
+# AWS S3 for File Storage
+AWS_S3_BUCKET=your-bucket-name
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_REGION=us-east-1
 
 # Email Configuration (Optional - for email verification and password reset)
 # EMAIL_HOST=smtp.gmail.com
@@ -697,7 +709,7 @@ Returns checkout information for a published book, including pricing and writer 
 - Only works for published books.
 - `isPurchased` indicates if the user has already bought the book.
 
-#### Create Order
+#### Create Order & Payment Intent
 
 ```bash
 POST /api/orders
@@ -709,20 +721,16 @@ Content-Type: application/json
 }
 ```
 
-Creates a new order or updates an existing pending order for the specified book.
+Creates a new order and Stripe PaymentIntent for the specified book.
 
 **Response (201 Created):**
 
 ```json
 {
-  "id": "507f1f77bcf86cd799439013",
-  "bookId": "507f1f77bcf86cd799439011",
-  "writerId": "507f1f77bcf86cd799439012",
-  "price": 12.99,
-  "status": "pending",
-  "clientSecret": "pi_507f1f77bcf86cd799439013_secret_1640995200000",
-  "createdAt": "2024-01-15T10:30:00.000Z",
-  "updatedAt": "2024-01-15T10:30:00.000Z"
+  "orderId": "507f1f77bcf86cd799439013",
+  "clientSecret": "pi_1234567890_secret_abcdefgh",
+  "amountCents": 1299,
+  "bookTitle": "The Great Adventure"
 }
 ```
 
@@ -737,9 +745,11 @@ Creates a new order or updates an existing pending order for the specified book.
 **Notes:**
 
 - Requires authentication.
-- Prevents duplicate orders by updating existing pending orders.
-- Returns a placeholder `clientSecret` for Stripe integration.
-- Order status starts as `pending` and should be updated to `paid` via webhook.
+- Creates a Stripe PaymentIntent with the book's price.
+- Calculates platform fee (default 10%) and seller proceeds.
+- Returns real `clientSecret` from Stripe for payment processing.
+- Order status starts as `pending` and is updated to `paid` via webhook when payment succeeds.
+- Prevents duplicate orders by checking for existing paid orders.
 
 #### Get User Orders
 
@@ -847,9 +857,16 @@ Returns a paginated list of books the user has successfully purchased (paid orde
 
 ```bash
 POST /api/webhooks/stripe
+Content-Type: application/json
+Stripe-Signature: <webhook_signature>
 ```
 
-Accepts Stripe webhook events for payment processing. Currently logs payloads for development.
+Accepts Stripe webhook events for payment processing.
+
+**Supported Events:**
+
+- `payment_intent.succeeded` – Updates order status to `paid`, generates presigned download URL, increments book sales stats
+- `payment_intent.payment_failed` – Updates order status to `failed`
 
 **Response (200 OK):**
 
@@ -859,23 +876,117 @@ Accepts Stripe webhook events for payment processing. Currently logs payloads fo
 }
 ```
 
-**Current Limitations:**
+**Notes:**
 
-- Signature validation is stubbed (not implemented)
-- Event handling is logged but not processed
-- Order status updates must be done manually during development
+- Webhook signature validation is performed using `STRIPE_WEBHOOK_SECRET`.
+- Download URLs are generated using AWS S3 presigned URLs with 24-hour expiry.
+- Book sales statistics are automatically updated on successful payment.
+- Configure this endpoint in your Stripe Dashboard under Webhooks.
 
-**Required Environment Variables (Future):**
+#### Get Seller Orders
 
-- `STRIPE_WEBHOOK_SECRET` – For webhook signature validation
+```bash
+GET /api/seller/orders?page=<number>&limit=<number>
+Authorization: Bearer <access_token>
+```
 
-**Development Notes:**
+Returns a paginated list of paid orders for books written by the authenticated seller.
 
-To mark orders as paid during development, update the order status directly in the database:
+**Response (200 OK):**
 
-```javascript
-// Example: Mark an order as paid
-await Order.findByIdAndUpdate(orderId, { status: 'paid' });
+```json
+{
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439013",
+      "bookId": {
+        "title": "The Great Adventure"
+      },
+      "userId": {
+        "username": "reader_user",
+        "email": "reader@example.com"
+      },
+      "amountCents": 1299,
+      "platformFeeCents": 130,
+      "sellerProceedsCents": 1169,
+      "status": "paid",
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 5,
+    "totalPages": 1
+  }
+}
+```
+
+**Query Parameters:**
+
+- `page` – Page number (default: 1)
+- `limit` – Items per page (default: 10, maximum: 100)
+
+**Notes:**
+
+- Requires authentication.
+- Only shows orders where the authenticated user is the book author.
+- Includes buyer information and earnings breakdown.
+
+#### Get Seller Earnings
+
+```bash
+GET /api/seller/earnings
+Authorization: Bearer <access_token>
+```
+
+Returns earnings summary for the authenticated seller.
+
+**Response (200 OK):**
+
+```json
+{
+  "totalEarnings": 11690,
+  "totalSales": 10,
+  "monthlyEarnings": 3507,
+  "monthlySales": 3,
+  "pendingOrders": 2
+}
+```
+
+**Notes:**
+
+- Requires authentication.
+- All earnings values are in cents.
+- `totalEarnings` reflects cumulative `sellerProceedsCents` (after platform fee).
+- `monthlyEarnings` resets on the first day of each month.
+- `pendingOrders` counts orders with `pending` status.
+
+### Payment Flow Summary
+
+The complete payment flow works as follows:
+
+1. **Buyer initiates purchase**: Frontend calls `POST /api/orders` with `bookId`
+2. **Order created**: Backend creates order and Stripe PaymentIntent, returns `clientSecret`
+3. **Payment collection**: Frontend uses Stripe.js to collect card details and confirm payment
+4. **Webhook notification**: Stripe sends `payment_intent.succeeded` to `POST /api/webhooks/stripe`
+5. **Order completion**: Backend updates order to `paid`, generates presigned S3 download URL (24hr expiry)
+6. **Access granted**: Buyer can download purchased book from `/purchases` page
+
+### Stripe Configuration
+
+To set up Stripe for development:
+
+1. Create a Stripe account at [stripe.com](https://stripe.com)
+2. Get your test API keys from the Stripe Dashboard
+3. Add `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` to your environment variables
+4. Set up a webhook endpoint pointing to `https://your-domain.com/api/webhooks/stripe`
+5. Add the webhook signing secret to `STRIPE_WEBHOOK_SECRET`
+
+For local webhook testing, use the [Stripe CLI](https://stripe.com/docs/stripe-cli):
+
+```bash
+stripe listen --forward-to localhost:5000/api/webhooks/stripe
 ```
 
 ## CI/CD Pipeline
