@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import { ZodError } from "zod";
 import { Book, Order, User, IBook, IOrder, IUser } from "../models";
-import { createOrderSchema, paginationQuerySchema, idParamsSchema } from "../validation/authValidation";
+import { createOrderSchema, paginationQuerySchema, idParamsSchema } from "../validation/orderValidation";
 
 const { Types } = mongoose;
 
@@ -105,7 +105,7 @@ export function createOrderController() {
       }
 
       // Type assertion for populated writer
-      const writer = (book.writerId as any) as IUser;
+      const writer = (book.authorId as any) as IUser;
 
       // Check if user already purchased this book
       const existingOrder = await Order.findOne({
@@ -119,8 +119,8 @@ export function createOrderController() {
           id: (book._id as any).toString(),
           title: book.title,
           description: book.description,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
         },
         writer: {
           id: (writer._id as any).toString(),
@@ -177,15 +177,15 @@ export function createOrderController() {
 
       if (order) {
         // Update existing pending order with current price
-        order.price = book.price;
+        order.price = book.priceCents / 100;
         await order.save();
       } else {
         // Create new order
         order = new Order({
           userId: new Types.ObjectId(userId),
           bookId: new Types.ObjectId(bookId),
-          writerId: book.writerId,
-          price: book.price,
+          writerId: book.authorId,
+          price: book.priceCents / 100,
           status: "pending",
         });
         await order.save();
@@ -197,7 +197,7 @@ export function createOrderController() {
       //   type: "purchase_completed",
       //   metadata: {
       //     bookId: book._id,
-      //     writerId: book.writerId,
+      //     writerId: book.authorId,
       //     orderId: order._id,
       //   },
       // });
@@ -245,7 +245,7 @@ export function createOrderController() {
           book: {
             id: (book._id as any).toString(),
             title: book.title,
-            coverImage: book.coverImage,
+            coverImage: book.coverUrl || book.coverImage,
           },
           writer: {
             id: (writer._id as any).toString(),
@@ -306,7 +306,7 @@ export function createOrderController() {
           title: book.title,
           description: book.description,
           price: order.price,
-          coverImage: book.coverImage,
+          coverImage: book.coverUrl || book.coverImage,
           writer: {
             id: (writer._id as any).toString(),
             username: writer.username,

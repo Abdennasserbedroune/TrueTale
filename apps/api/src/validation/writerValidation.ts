@@ -33,23 +33,42 @@ export const paginationQuerySchema = z
   });
 
 const genresSchema = z.array(z.string().min(1).max(50)).min(1).max(10);
+const tagsSchema = z.array(z.string().min(1).max(50)).max(20);
 
 export const createBookSchema = z.object({
+  // New fields (primary)
   title: z.string().min(1).max(200),
-  description: z.string().min(1).max(2000),
-  category: z.string().min(1).max(100),
-  price: z.number().min(0),
+  description: z.string().max(5000).optional(),
+  priceCents: z.number().min(0).optional(),
+  currency: z.enum(["USD", "EUR", "GBP"]).optional(),
+  isDraft: z.boolean().optional(),
+  visibility: z.enum(["public", "private", "unlisted"]).optional(),
+  tags: tagsSchema.optional(),
+  coverUrl: z.string().url().optional(),
+  
+  // Legacy fields (for backward compatibility)
+  category: z.string().min(1).max(100).optional(),
+  price: z.number().min(0).optional(),
   coverImage: z.string().url().optional(),
   status: bookStatusEnum.optional(),
-  genres: genresSchema,
-  language: z.string().min(1).max(60),
-  pages: z.number().int().min(1),
+  genres: genresSchema.optional(),
+  language: z.string().min(1).max(60).optional(),
+  pages: z.number().int().min(1).optional(),
 });
 
 export const updateBookSchema = z
   .object({
+    // New fields (primary)
     title: z.string().min(1).max(200).optional(),
-    description: z.string().min(1).max(2000).optional(),
+    description: z.string().max(5000).optional(),
+    priceCents: z.number().min(0).optional(),
+    currency: z.enum(["USD", "EUR", "GBP"]).optional(),
+    isDraft: z.boolean().optional(),
+    visibility: z.enum(["public", "private", "unlisted"]).optional(),
+    tags: tagsSchema.optional(),
+    coverUrl: z.string().url().optional(),
+    
+    // Legacy fields (for backward compatibility)
     category: z.string().min(1).max(100).optional(),
     price: z.number().min(0).optional(),
     coverImage: z.string().url().optional(),

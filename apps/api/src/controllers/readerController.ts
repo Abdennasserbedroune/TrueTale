@@ -10,7 +10,7 @@ import {
   readerProfileUpdateSchema,
   reviewMutationSchema,
   updateReviewSchema,
-} from "../validation/authValidation";
+} from "../validation/readerValidation";
 
 const { Types } = mongoose;
 
@@ -192,7 +192,7 @@ export function createReaderController(feedService: FeedService) {
       }
 
       if (writerId) {
-        match.writerId = new Types.ObjectId(writerId);
+        match.authorId = new Types.ObjectId(writerId);
       }
 
       if (minRating !== undefined || maxRating !== undefined) {
@@ -234,7 +234,7 @@ export function createReaderController(feedService: FeedService) {
         Book.countDocuments(match),
       ]);
 
-      const writerIds = Array.from(new Set(books.map((book) => book.writerId.toString())));
+      const writerIds = Array.from(new Set(books.map((book) => book.authorId.toString())));
       const writerObjectIds = writerIds.map((id) => new Types.ObjectId(id));
 
       const [writers, followerCounts] = await Promise.all([
@@ -260,23 +260,23 @@ export function createReaderController(feedService: FeedService) {
       );
 
       const data = books.map((book) => {
-        const writer = writersMap.get(book.writerId.toString()) ?? null;
-        const followersCount = followerCountsMap.get(book.writerId.toString()) ?? 0;
+        const writer = writersMap.get(book.authorId.toString()) ?? null;
+        const followersCount = followerCountsMap.get(book.authorId.toString()) ?? 0;
 
         return {
           id: book._id.toString(),
           title: book.title,
           description: book.description,
           category: book.category,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
           genres: book.genres,
           language: book.language,
           pages: book.pages,
           averageRating: book.averageRating,
           reviewCount: book.reviewCount,
           publishedAt: book.publishedAt,
-          writer: buildWriterSummary(writer, followersCount, undefined, book.writerId.toString()),
+          writer: buildWriterSummary(writer, followersCount, undefined, book.authorId.toString()),
         };
       });
 
@@ -332,9 +332,9 @@ export function createReaderController(feedService: FeedService) {
       }
 
       const [writer, followersCount, publishedBooks] = await Promise.all([
-        User.findById(book.writerId),
-        Follow.countDocuments({ followingId: book.writerId }),
-        Book.countDocuments({ writerId: book.writerId, status: "published" }),
+        User.findById(book.authorId),
+        Follow.countDocuments({ followingId: book.authorId }),
+        Book.countDocuments({ authorId: book.authorId, status: "published" }),
       ]);
 
       const [reviews, stats, distribution] = await Promise.all([
@@ -397,8 +397,8 @@ export function createReaderController(feedService: FeedService) {
           title: book.title,
           description: book.description,
           category: book.category,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
           genres: book.genres,
           language: book.language,
           pages: book.pages,
@@ -409,7 +409,7 @@ export function createReaderController(feedService: FeedService) {
             writer ?? null,
             followersCount,
             publishedBooks,
-            book.writerId.toString()
+            book.authorId.toString()
           ),
         },
         reviews: {
@@ -477,7 +477,7 @@ export function createReaderController(feedService: FeedService) {
 
       const userId = new Types.ObjectId(req.user.userId);
 
-      if (book.writerId.equals(userId)) {
+      if (book.authorId.equals(userId)) {
         sendErrorResponse(res, {
           message: "Writers cannot review their own books",
           status: StatusCodes.FORBIDDEN,
@@ -565,9 +565,9 @@ export function createReaderController(feedService: FeedService) {
           ? {
               id: bookDoc._id.toString(),
               title: bookDoc.title,
-              coverImage: bookDoc.coverImage,
+              coverImage: bookDoc.coverUrl || bookDoc.coverImage,
               status: bookDoc.status,
-              writerId: bookDoc.writerId.toString(),
+              authorId: bookDoc.authorId.toString(),
               averageRating: bookDoc.averageRating,
               reviewCount: bookDoc.reviewCount,
             }

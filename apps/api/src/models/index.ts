@@ -2,7 +2,14 @@ export { User } from "./User";
 export type { IUser, UserRole, SocialLinks, NotificationPreferences, PayoutSettings } from "./User";
 
 export { Book } from "./Book";
-export type { IBook, BookStatus } from "./Book";
+export type {
+  IBook,
+  IBookFile,
+  BookStatus,
+  BookVisibility,
+  BookFileType,
+  BookCurrency,
+} from "./Book";
 
 export { Draft } from "./Draft";
 export type { IDraft } from "./Draft";
