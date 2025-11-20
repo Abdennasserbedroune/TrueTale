@@ -233,7 +233,8 @@ async function seedDatabase() {
     for (let i = 0; i < mockBooks.length; i++) {
       const bookData = {
         ...mockBooks[i],
-        writerId: writers[i % writers.length]._id,
+        authorId: writers[i % writers.length]._id,
+        slug: mockBooks[i].title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       };
       const book = new Book(bookData);
       await book.save();
@@ -307,7 +308,7 @@ async function seedDatabase() {
     // Book published activities
     for (const book of createdBooks.filter((b) => b.status === "published")) {
       const activity = new FeedActivity({
-        userId: book.writerId,
+        userId: book.authorId,
         activityType: "book_published",
         targetId: book._id,
         metadata: { bookTitle: book.title },

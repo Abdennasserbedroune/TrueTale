@@ -15,6 +15,7 @@ import { createMarketplaceRoutes } from "./routes/marketplaceRoutes";
 import { createFeedRoutes } from "./routes/feedRoutes";
 import { createOrderRoutes } from "./routes/orderRoutes";
 import { createProfileRoutes } from "./routes/profileRoutes";
+import { createBookRoutes } from "./routes/bookRoutes";
 
 interface ErrorResponse {
   message: string;
@@ -76,6 +77,9 @@ export function createApp(
 
   // Profile routes
   app.use("/api/users", createProfileRoutes(tokenService));
+
+  // Book routes (new comprehensive book system)
+  app.use("/api/books", createBookRoutes(tokenService));
 
   // Reader routes
   app.use("/api", createReaderRoutes(tokenService, feedService));

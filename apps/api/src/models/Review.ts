@@ -49,18 +49,18 @@ reviewSchema.index({ bookId: 1, createdAt: -1 });
 // Post-save hook to update book rating counts
 reviewSchema.post<IReview>("save", async function () {
   const Book = mongoose.model("Book");
-  await updateBookRatings(this.bookId, Book);
+  await updateBookRatings(this.bookId, Book as mongoose.Model<IBook>);
 });
 
-// Post-remove hook to update book rating counts
-reviewSchema.post<IReview>("remove", async function () {
+// Post-remove hook to update book rating counts (deprecated, use deleteOne)
+reviewSchema.post<IReview>("deleteOne", async function () {
   const Book = mongoose.model("Book");
-  await updateBookRatings(this.bookId, Book);
+  await updateBookRatings(this.bookId, Book as mongoose.Model<IBook>);
 });
 
 // Helper function to update book ratings
 async function updateBookRatings(bookId: mongoose.Types.ObjectId, Book: mongoose.Model<IBook>) {
-  const Review = mongoose.model("Review");
+  const Review = mongoose.model("Review") as mongoose.Model<IReview>;
 
   const ratingStats = await Review.aggregate([
     { $match: { bookId } },

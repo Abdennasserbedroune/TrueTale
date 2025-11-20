@@ -21,7 +21,7 @@ import {
   createStorySchema,
   updateProfileSchema,
   paginationQuerySchema,
-} from "../validation/authValidation";
+} from "../validation/writerValidation";
 
 const { Types } = mongoose;
 
@@ -54,9 +54,19 @@ const serializeBook = (book: IBook) => ({
   id: book._id.toString(),
   title: book.title,
   description: book.description,
+  slug: book.slug,
+  coverUrl: book.coverUrl,
+  priceCents: book.priceCents,
+  currency: book.currency,
+  isDraft: book.isDraft,
+  visibility: book.visibility,
+  tags: book.tags,
+  files: book.files,
+  stats: book.stats,
+  // Legacy fields
   category: book.category,
-  price: book.price,
-  coverImage: book.coverImage,
+  price: book.priceCents / 100,
+  coverImage: book.coverUrl,
   status: book.status,
   genres: book.genres,
   language: book.language,
@@ -64,7 +74,8 @@ const serializeBook = (book: IBook) => ({
   averageRating: book.averageRating,
   reviewCount: book.reviewCount,
   publishedAt: book.publishedAt,
-  writerId: book.writerId.toString(),
+  authorId: book.authorId.toString(),
+  writerId: book.authorId.toString(), // Backward compatibility
   createdAt: book.createdAt,
   updatedAt: book.updatedAt,
 });
@@ -126,7 +137,7 @@ export function createWriterController(feedService: FeedService) {
     }
 
     const userId = req.user.userId;
-    const writerId = new Types.ObjectId(userId);
+    const authorId = new Types.ObjectId(userId);
     const validatedData = parseResult.data;
     const session = await mongoose.startSession();
 
@@ -137,7 +148,7 @@ export function createWriterController(feedService: FeedService) {
         const book = new Book({
           ...validatedData,
           status: validatedData.status ?? "draft",
-          writerId,
+          authorId,
         });
 
         createdBook = await book.save({ session });
@@ -205,7 +216,7 @@ export function createWriterController(feedService: FeedService) {
 
     const session = await mongoose.startSession();
     const userId = req.user.userId;
-    const writerId = new Types.ObjectId(userId);
+    const authorId = new Types.ObjectId(userId);
     const validatedData = parseResult.data;
 
     try {
@@ -223,7 +234,7 @@ export function createWriterController(feedService: FeedService) {
           return;
         }
 
-        if (!book.writerId.equals(writerId)) {
+        if (!book.authorId.equals(authorId)) {
           errorResponse = {
             message: "You do not have access to this resource",
             status: StatusCodes.FORBIDDEN,
@@ -305,7 +316,7 @@ export function createWriterController(feedService: FeedService) {
     }
 
     const session = await mongoose.startSession();
-    const writerId = new Types.ObjectId(req.user.userId);
+    const authorId = new Types.ObjectId(req.user.userId);
 
     try {
       let errorResponse: ErrorResponse | null = null;
@@ -322,7 +333,7 @@ export function createWriterController(feedService: FeedService) {
           return;
         }
 
-        if (!book.writerId.equals(writerId)) {
+        if (!book.authorId.equals(authorId)) {
           errorResponse = {
             message: "You do not have access to this resource",
             status: StatusCodes.FORBIDDEN,
@@ -376,15 +387,15 @@ export function createWriterController(feedService: FeedService) {
     }
 
     const { page, limit } = parseResult.data;
-    const writerId = new Types.ObjectId(req.user.userId);
+    const authorId = new Types.ObjectId(req.user.userId);
 
     try {
       const [books, total] = await Promise.all([
-        Book.find({ writerId, status: "published" })
+        Book.find({ authorId, status: "published" })
           .sort({ publishedAt: -1, createdAt: -1 })
           .skip((page - 1) * limit)
           .limit(limit),
-        Book.countDocuments({ writerId, status: "published" }),
+        Book.countDocuments({ authorId, status: "published" }),
       ]);
 
       const totalPages = total === 0 ? 0 : Math.ceil(total / limit);

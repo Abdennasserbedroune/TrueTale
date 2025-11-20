@@ -105,7 +105,7 @@ export function createMarketplaceController() {
       const { page, limit } = parseResult.data;
 
       const match: mongoose.FilterQuery<IBook> = { status: "published" };
-      const sortSpec = { publishedAt: -1, createdAt: -1 };
+      const sortSpec = { publishedAt: -1 as const, createdAt: -1 as const };
 
       const skip = (page - 1) * limit;
 
@@ -114,7 +114,7 @@ export function createMarketplaceController() {
         Book.countDocuments(match),
       ]);
 
-      const writerIds = Array.from(new Set(books.map((book) => book.writerId.toString())));
+      const writerIds = Array.from(new Set(books.map((book) => book.authorId.toString())));
       const writerObjectIds = writerIds.map((id) => new Types.ObjectId(id));
 
       const [writers, followerCounts] = await Promise.all([
@@ -140,23 +140,23 @@ export function createMarketplaceController() {
       );
 
       const items = books.map((book) => {
-        const writer = writersMap.get(book.writerId.toString()) ?? null;
-        const followersCount = followerCountsMap.get(book.writerId.toString()) ?? 0;
+        const writer = writersMap.get(book.authorId.toString()) ?? null;
+        const followersCount = followerCountsMap.get(book.authorId.toString()) ?? 0;
 
         return {
           id: book._id.toString(),
           title: book.title,
           description: book.description,
           category: book.category,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
           genres: book.genres,
           language: book.language,
           pages: book.pages,
           averageRating: book.averageRating,
           reviewCount: book.reviewCount,
           publishedAt: book.publishedAt,
-          writer: buildWriterSummary(writer, followersCount, undefined, book.writerId.toString()),
+          writer: buildWriterSummary(writer, followersCount, undefined, book.authorId.toString()),
         };
       });
 
@@ -206,7 +206,7 @@ export function createMarketplaceController() {
         Book.countDocuments(match),
       ]);
 
-      const writerIds = Array.from(new Set(books.map((book) => book.writerId.toString())));
+      const writerIds = Array.from(new Set(books.map((book) => book.authorId.toString())));
       const writerObjectIds = writerIds.map((id) => new Types.ObjectId(id));
 
       const [writers, followerCounts] = await Promise.all([
@@ -232,23 +232,23 @@ export function createMarketplaceController() {
       );
 
       const items = books.map((book) => {
-        const writer = writersMap.get(book.writerId.toString()) ?? null;
-        const followersCount = followerCountsMap.get(book.writerId.toString()) ?? 0;
+        const writer = writersMap.get(book.authorId.toString()) ?? null;
+        const followersCount = followerCountsMap.get(book.authorId.toString()) ?? 0;
 
         return {
           id: book._id.toString(),
           title: book.title,
           description: book.description,
           category: book.category,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
           genres: book.genres,
           language: book.language,
           pages: book.pages,
           averageRating: book.averageRating,
           reviewCount: book.reviewCount,
           publishedAt: book.publishedAt,
-          writer: buildWriterSummary(writer, followersCount, undefined, book.writerId.toString()),
+          writer: buildWriterSummary(writer, followersCount, undefined, book.authorId.toString()),
         };
       });
 
@@ -346,7 +346,7 @@ export function createMarketplaceController() {
         Book.countDocuments(match),
       ]);
 
-      const writerIds = Array.from(new Set(books.map((book) => book.writerId.toString())));
+      const writerIds = Array.from(new Set(books.map((book) => book.authorId.toString())));
       const writerObjectIds = writerIds.map((id) => new Types.ObjectId(id));
 
       const [writers, followerCounts] = await Promise.all([
@@ -372,23 +372,23 @@ export function createMarketplaceController() {
       );
 
       const items = books.map((book) => {
-        const writer = writersMap.get(book.writerId.toString()) ?? null;
-        const followersCount = followerCountsMap.get(book.writerId.toString()) ?? 0;
+        const writer = writersMap.get(book.authorId.toString()) ?? null;
+        const followersCount = followerCountsMap.get(book.authorId.toString()) ?? 0;
 
         return {
           id: book._id.toString(),
           title: book.title,
           description: book.description,
           category: book.category,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
           genres: book.genres,
           language: book.language,
           pages: book.pages,
           averageRating: book.averageRating,
           reviewCount: book.reviewCount,
           publishedAt: book.publishedAt,
-          writer: buildWriterSummary(writer, followersCount, undefined, book.writerId.toString()),
+          writer: buildWriterSummary(writer, followersCount, undefined, book.authorId.toString()),
         };
       });
 
@@ -462,7 +462,7 @@ export function createMarketplaceController() {
 
       const books = await Book.aggregate(pipeline);
 
-      const writerIds = Array.from(new Set(books.map((book) => book.writerId.toString())));
+      const writerIds = Array.from(new Set(books.map((book) => book.authorId.toString())));
       const writerObjectIds = writerIds.map((id) => new Types.ObjectId(id));
 
       const [writers, followerCounts] = await Promise.all([
@@ -488,23 +488,23 @@ export function createMarketplaceController() {
       );
 
       const items = books.map((book) => {
-        const writer = writersMap.get(book.writerId.toString()) ?? null;
-        const followersCount = followerCountsMap.get(book.writerId.toString()) ?? 0;
+        const writer = writersMap.get(book.authorId.toString()) ?? null;
+        const followersCount = followerCountsMap.get(book.authorId.toString()) ?? 0;
 
         return {
           id: book._id.toString(),
           title: book.title,
           description: book.description,
           category: book.category,
-          price: book.price,
-          coverImage: book.coverImage,
+          price: book.priceCents / 100,
+          coverImage: book.coverUrl || book.coverImage,
           genres: book.genres,
           language: book.language,
           pages: book.pages,
           averageRating: book.averageRating,
           reviewCount: book.reviewCount,
           publishedAt: book.publishedAt,
-          writer: buildWriterSummary(writer, followersCount, undefined, book.writerId.toString()),
+          writer: buildWriterSummary(writer, followersCount, undefined, book.authorId.toString()),
         };
       });
 
