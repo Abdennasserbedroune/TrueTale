@@ -662,6 +662,212 @@ Returns a paginated feed of all platform activities, sorted by most recent first
 - Public endpoint (no authentication required).
 - Returns activities from all writers regardless of follow status.
 
+#### Get Trending Books
+
+```bash
+GET /api/feed/trending?limit=<number>&days=<number>
+```
+
+Returns trending books ranked by a weighted score based on sales, views, and recent reviews. Available to all users.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": "507f1f77bcf86cd799439011",
+    "title": "The Great Adventure",
+    "slug": "the-great-adventure",
+    "coverImage": "https://example.com/cover.jpg",
+    "description": "An epic journey through unknown lands",
+    "price": 12.99,
+    "averageRating": 4.5,
+    "reviewCount": 42,
+    "trendScore": 25.5,
+    "recentReviewCount": 8,
+    "stats": {
+      "sales": 30,
+      "views": 150
+    },
+    "author": {
+      "id": "507f1f77bcf86cd799439012",
+      "username": "author_name",
+      "avatar": "https://example.com/avatar.png",
+      "bio": "Fantasy writer"
+    }
+  }
+]
+```
+
+**Query Parameters:**
+
+- `limit` – Number of books to return (default: 10, maximum: 50)
+- `days` – Time window in days (default: 7, maximum: 365)
+
+**Trending Score Algorithm:**
+
+```
+trendScore = (sales × 0.5) + (views × 0.1) + (reviews × 1.0)
+```
+
+**Notes:**
+
+- Public endpoint (no authentication required).
+- Only includes published books updated within the specified time window.
+- Books are ranked by trend score in descending order.
+
+### Social Features
+
+The platform includes comprehensive social features for following writers and reviewing books.
+
+#### Follow a Writer
+
+```bash
+POST /api/follow/:writerId
+Authorization: Bearer <access_token>
+```
+
+Follows a writer and records a feed activity.
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Followed writer",
+  "following": true,
+  "followersCount": 42
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` – Writer does not exist
+- `400 Bad Request` – Cannot follow yourself
+- `401 Unauthorized` – Authentication required
+
+**Notes:**
+
+- Requires authentication.
+- Idempotent: returns success even if already following.
+- Records a `follow_created` activity in the feed.
+
+#### Unfollow a Writer
+
+```bash
+DELETE /api/follow/:writerId
+Authorization: Bearer <access_token>
+```
+
+Unfollows a writer and records a feed activity.
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Unfollowed writer",
+  "following": false,
+  "followersCount": 41
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` – Writer does not exist
+- `401 Unauthorized` – Authentication required
+
+**Notes:**
+
+- Requires authentication.
+- Idempotent: returns success even if not following.
+- Records a `follow_removed` activity in the feed.
+
+#### Check Follow Status
+
+```bash
+GET /api/follow/:writerId/check
+Authorization: Bearer <access_token> (optional)
+```
+
+Checks if the authenticated user is following a writer.
+
+**Response (200 OK):**
+
+```json
+{
+  "isFollowing": true
+}
+```
+
+**Notes:**
+
+- Authentication optional (returns `false` if not authenticated).
+- Useful for displaying follow button state.
+
+#### Get Writer Followers
+
+```bash
+GET /api/followers/:writerId
+```
+
+Returns a list of users following the specified writer.
+
+**Response (200 OK):**
+
+```json
+{
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439013",
+      "username": "reader_user",
+      "profile": "Book lover",
+      "bio": "Reading enthusiast",
+      "avatar": "https://example.com/avatar.png"
+    }
+  ],
+  "total": 42
+}
+```
+
+**Notes:**
+
+- Public endpoint (no authentication required).
+- Returns all followers for the specified writer.
+
+#### Get Following List
+
+```bash
+GET /api/following
+Authorization: Bearer <access_token>
+```
+
+Returns a list of writers the authenticated user is following.
+
+**Response (200 OK):**
+
+```json
+{
+  "data": [
+    {
+      "writer": {
+        "id": "507f1f77bcf86cd799439012",
+        "username": "author_name",
+        "profile": "Fantasy writer",
+        "bio": "Writing epic adventures",
+        "avatar": "https://example.com/avatar.png",
+        "followersCount": 42,
+        "publishedBooks": 5
+      }
+    }
+  ],
+  "total": 3
+}
+```
+
+**Notes:**
+
+- Requires authentication.
+- Only includes writers (users with role "writer").
+
 ### Checkout & Order APIs
 
 The marketplace provides Stripe-ready checkout and order management endpoints for purchasing books.

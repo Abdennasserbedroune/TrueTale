@@ -958,6 +958,83 @@ export function createReaderController(feedService: FeedService) {
     }
   };
 
+  const getFollowers = async (req: Request, res: Response): Promise<void> => {
+    const { writerId } = req.params;
+
+    if (!isValidObjectId(writerId)) {
+      sendErrorResponse(res, {
+        message: "Invalid writer id",
+        status: StatusCodes.BAD_REQUEST,
+      });
+      return;
+    }
+
+    try {
+      const followingId = new Types.ObjectId(writerId);
+      const followers = await Follow.find({ followingId })
+        .populate("followerId", "username profile bio avatar")
+        .sort({ createdAt: -1 });
+
+      const data = followers.map((follow) => {
+        const follower = follow.followerId as IUser;
+        return {
+          id: follower._id.toString(),
+          username: follower.username,
+          profile: follower.profile,
+          bio: follower.bio,
+          avatar: follower.avatar,
+        };
+      });
+
+      res.status(StatusCodes.OK).json({
+        data,
+        total: data.length,
+      });
+    } catch (error) {
+      console.error("[READER] Get followers error:", error);
+      sendErrorResponse(res, {
+        message: "Failed to fetch followers list",
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  };
+
+  const checkFollowing = async (req: Request, res: Response): Promise<void> => {
+    const { writerId } = req.params;
+
+    if (!isValidObjectId(writerId)) {
+      sendErrorResponse(res, {
+        message: "Invalid writer id",
+        status: StatusCodes.BAD_REQUEST,
+      });
+      return;
+    }
+
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(StatusCodes.OK).json({ isFollowing: false });
+      return;
+    }
+
+    try {
+      const followerId = new Types.ObjectId(userId);
+      const followingId = new Types.ObjectId(writerId);
+
+      const follow = await Follow.findOne({ followerId, followingId });
+
+      res.status(StatusCodes.OK).json({
+        isFollowing: !!follow,
+      });
+    } catch (error) {
+      console.error("[READER] Check following error:", error);
+      sendErrorResponse(res, {
+        message: "Failed to check follow status",
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  };
+
   const getProfile = async (req: Request, res: Response): Promise<void> => {
     if (!req.user) {
       sendErrorResponse(res, {
@@ -1071,6 +1148,8 @@ export function createReaderController(feedService: FeedService) {
     followWriter,
     unfollowWriter,
     getFollowing,
+    getFollowers,
+    checkFollowing,
     getProfile,
     updateProfile,
   };
