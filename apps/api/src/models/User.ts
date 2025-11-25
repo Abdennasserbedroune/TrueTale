@@ -194,4 +194,4 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
 userSchema.index({ verificationToken: 1, verificationExpires: 1 });
 userSchema.index({ resetToken: 1, resetExpires: 1 });
 
-export const User = mongoose.model<IUser>("User", userSchema);
+export const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);

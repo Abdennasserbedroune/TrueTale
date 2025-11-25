@@ -41,4 +41,4 @@ const storySchema = new Schema<IStory>(
 // Index for finding published stories
 storySchema.index({ published: 1, createdAt: -1 });
 
-export const Story = mongoose.model<IStory>("Story", storySchema);
+export const Story = mongoose.models.Story || mongoose.model<IStory>("Story", storySchema);

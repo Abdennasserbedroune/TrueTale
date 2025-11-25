@@ -10,36 +10,39 @@ interface WriterCardProps {
 
 export function WriterCard({ writer, showBio = false }: WriterCardProps) {
   return (
-    <article className="flex flex-col justify-between rounded-lg border border-neutral-200 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/80">
-      <div className="space-y-3">
-        <header className="space-y-1">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            <Link className="hover:underline" href={`/writers/${writer.slug}`}>
-              {writer.name}
-            </Link>
-          </h3>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">{writer.tagline}</p>
+    <article className="group relative flex flex-col justify-between rounded-2xl border border-white/5 bg-bg-surface p-6 shadow-xl transition-all hover:-translate-y-1 hover:shadow-brand-500/10 hover:border-brand-500/20">
+      <div className="space-y-4">
+        <header className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-text-primary font-serif tracking-wide">
+              <Link className="hover:text-brand-400 transition-colors" href={`/writers/${writer.slug}`}>
+                {writer.name}
+              </Link>
+            </h3>
+            <div className="h-2 w-2 rounded-full bg-brand-500 animate-pulse" />
+          </div>
+          <p className="text-sm font-medium text-brand-300 uppercase tracking-wider">{writer.tagline}</p>
         </header>
-        {showBio && <p className="text-sm text-neutral-700 dark:text-neutral-300">{writer.bio}</p>}
+        {showBio && <p className="text-sm text-text-secondary leading-relaxed line-clamp-3">{writer.bio}</p>}
         <div className="flex flex-wrap gap-2" aria-label="Writer interests">
           {writer.interests.map((interest) => (
             <span
               key={interest}
-              className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900/50 dark:text-purple-200"
+              className="rounded-full border border-white/5 bg-white/5 px-3 py-1 text-xs font-medium text-text-muted transition-colors group-hover:border-brand-500/30 group-hover:text-brand-300"
             >
               {interest}
             </span>
           ))}
         </div>
       </div>
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-neutral-600 dark:text-neutral-400">
+      <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-white/5 pt-4 text-xs">
         <div>
-          <dt className="font-semibold text-neutral-800 dark:text-neutral-200">Followers</dt>
-          <dd>{writer.network.followers.length}</dd>
+          <dt className="font-semibold text-text-secondary uppercase tracking-wider text-[10px]">Followers</dt>
+          <dd className="text-lg font-bold text-text-primary mt-0.5">{writer.network.followers.length}</dd>
         </div>
         <div>
-          <dt className="font-semibold text-neutral-800 dark:text-neutral-200">Following</dt>
-          <dd>{writer.network.following.length}</dd>
+          <dt className="font-semibold text-text-secondary uppercase tracking-wider text-[10px]">Following</dt>
+          <dd className="text-lg font-bold text-text-primary mt-0.5">{writer.network.following.length}</dd>
         </div>
       </dl>
     </article>

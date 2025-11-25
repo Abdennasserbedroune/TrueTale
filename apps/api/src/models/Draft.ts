@@ -46,4 +46,4 @@ draftSchema.pre<IDraft>("save", function (next) {
   next();
 });
 
-export const Draft = mongoose.model<IDraft>("Draft", draftSchema);
+export const Draft = mongoose.models.Draft || mongoose.model<IDraft>("Draft", draftSchema);

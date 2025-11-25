@@ -52,4 +52,4 @@ orderSchema.index({ userId: 1, createdAt: -1 });
 orderSchema.index({ userId: 1, bookId: 1 }, { unique: true }); // Prevent duplicate orders for same user/book
 orderSchema.index({ status: 1, createdAt: -1 });
 
-export const Order = mongoose.model<IOrder>("Order", orderSchema);
+export const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);

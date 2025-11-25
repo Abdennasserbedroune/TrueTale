@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadAsset } from "@/lib/marketplaceService";
 
-export async function POST(request: NextRequest, { params }: { params: { workId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ workId: string }> }) {
   try {
+    const { workId } = await params;
     const body = await request.json();
     const { filename, contentType, base64Data } = body ?? {};
 
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest, { params }: { params: { workId:
       );
     }
 
-    const asset = uploadAsset(params.workId, { filename, contentType, base64Data });
+    const asset = uploadAsset(workId, { filename, contentType, base64Data });
     const { base64Data: _discarded, ...exposed } = asset;
     return NextResponse.json({ asset: exposed });
   } catch (error) {

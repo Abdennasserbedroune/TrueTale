@@ -28,7 +28,7 @@ class StripeService {
       // eslint-disable-next-line @typescript-eslint/no-var-requires -- dynamic import for optional dependency
       const StripeConstructor = require("stripe") as typeof Stripe;
       this.stripe = new StripeConstructor(stripeSecretKey, {
-        apiVersion: "2024-06-20",
+        apiVersion: "2025-11-17.clover",
       });
       this.mode = "live";
     } else {

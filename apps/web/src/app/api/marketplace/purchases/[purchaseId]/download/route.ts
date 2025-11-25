@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPurchaseDownload } from "@/lib/marketplaceService";
 
-export async function GET(request: NextRequest, { params }: { params: { purchaseId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ purchaseId: string }> }) {
   try {
+    const { purchaseId } = await params;
     const token = request.nextUrl.searchParams.get("token");
     if (!token) {
       return NextResponse.json({ error: "token query parameter is required" }, { status: 400 });
     }
 
-    const { asset, purchase, work } = getPurchaseDownload(params.purchaseId, token);
+    const { asset, purchase, work } = getPurchaseDownload(purchaseId, token);
 
     return NextResponse.json({
       filename: asset.filename,

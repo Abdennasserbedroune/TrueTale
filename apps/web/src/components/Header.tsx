@@ -1,43 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "./Icon";
-import { IconButton } from "./IconButton";
-import { Bars3Icon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/contexts/AuthContext";
 
-export interface HeaderProps {
-  onMenuClick?: () => void;
-}
+export function Header() {
+  const { user, logout } = useAuth();
 
-export function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <IconButton
-            icon={<Icon icon={Bars3Icon} aria-hidden />}
-            aria-label="Open menu"
-            variant="ghost"
-            size="md"
-            onClick={onMenuClick}
-            className="lg:hidden"
-          />
-          <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-text-inverse">
-              <Icon icon={UserCircleIcon} size="md" aria-hidden />
-            </span>
-            <span className="text-text-primary">TrueTale</span>
-          </Link>
-        </div>
+    <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-xl bg-black/50 border-b border-white/5">
+      <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
+        <Link href="/" className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity">
+          TrueTale
+        </Link>
 
-        <div className="flex items-center gap-2">
-          <IconButton
-            icon={<Icon icon={UserCircleIcon} aria-hidden />}
-            aria-label="User profile"
-            variant="ghost"
-            size="md"
-          />
-        </div>
+        <nav className="flex items-center gap-8">
+          {user ? (
+            <>
+              <Link href="/marketplace" className="text-sm hover:text-neon-purple transition-colors">
+                Stories
+              </Link>
+              <Link href="/trending" className="text-sm hover:text-neon-purple transition-colors">
+                Trending
+              </Link>
+
+              {user.role === "writer" ? (
+                <>
+                  <Link href="/seller/dashboard" className="text-sm hover:text-neon-purple transition-colors">
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/seller/dashboard"
+                    className="px-6 py-2 bg-white text-black text-sm font-medium rounded-full hover:bg-white/90 transition-colors"
+                  >
+                    Publish
+                  </Link>
+                </>
+              ) : (
+                <Link href="/feed" className="text-sm hover:text-neon-purple transition-colors">
+                  My Feed
+                </Link>
+              )}
+
+              <button
+                onClick={logout}
+                className="text-sm text-white/60 hover:text-white transition-colors"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/auth/login" className="text-sm hover:text-neon-purple transition-colors">
+                Sign in
+              </Link>
+              <Link
+                href="/auth/register"
+                className="px-6 py-2 bg-white text-black text-sm font-medium rounded-full hover:bg-white/90 transition-colors"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
+        </nav>
       </div>
     </header>
   );

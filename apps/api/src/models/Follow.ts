@@ -76,4 +76,4 @@ followSchema.statics.getFollowCounts = async function (userId: mongoose.Types.Ob
   return { followersCount, followingCount };
 };
 
-export const Follow = mongoose.model<IFollow>("Follow", followSchema);
+export const Follow = mongoose.models.Follow || mongoose.model<IFollow>("Follow", followSchema);

@@ -108,4 +108,4 @@ feedActivitySchema.statics.getActivitiesByTarget = function (
   return this.find(query).populate("userId", "username avatar").sort({ createdAt: -1 }).limit(50);
 };
 
-export const FeedActivity = mongoose.model<IFeedActivity>("FeedActivity", feedActivitySchema);
+export const FeedActivity = mongoose.models.FeedActivity || mongoose.model<IFeedActivity>("FeedActivity", feedActivitySchema);

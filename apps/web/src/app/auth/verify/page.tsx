@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { verify } from "@/lib/auth";
 
-export default function VerifyPage() {
+function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -21,7 +21,7 @@ export default function VerifyPage() {
 
     async function verifyEmail() {
       try {
-        const result = await verify(token);
+        const result = await verify(token as string);
         setStatus("success");
         setMessage(result.message || "Email verified successfully");
         setTimeout(() => {
@@ -107,5 +107,17 @@ export default function VerifyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      </div>
+    }>
+      <VerifyEmailForm />
+    </Suspense>
   );
 }

@@ -70,64 +70,71 @@ export function WorkEngagement({ work, writers, initialComments }: WorkEngagemen
   };
 
   return (
-    <section aria-label={accessibleSummary} className="space-y-6">
-      <div className="flex flex-wrap gap-3">
+    <section aria-label={accessibleSummary} className="space-y-8">
+      <div className="flex flex-wrap gap-4">
         <button
           type="button"
           onClick={handleToggleLike}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
-            hasLiked
-              ? "bg-emerald-600 text-white shadow"
-              : "bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-100"
-          }`}
+          className={`group relative inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 ${hasLiked
+              ? "bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-500"
+              : "bg-white/5 text-text-primary hover:bg-white/10 hover:text-brand-300"
+            }`}
           aria-pressed={hasLiked}
         >
-          {hasLiked ? "Liked" : "Like"} · {likeCount}
+          <span>{hasLiked ? "Liked" : "Like"}</span>
+          <span className="opacity-50">·</span>
+          <span>{likeCount}</span>
         </button>
         <button
           type="button"
           onClick={handleToggleBookmark}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 ${
-            hasBookmarked
-              ? "bg-sky-600 text-white shadow"
-              : "bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-100"
-          }`}
+          className={`group relative inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 ${hasBookmarked
+              ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/25 hover:bg-cyan-500"
+              : "bg-white/5 text-text-primary hover:bg-white/10 hover:text-cyan-300"
+            }`}
           aria-pressed={hasBookmarked}
         >
-          {hasBookmarked ? "Bookmarked" : "Bookmark"} · {bookmarkCount}
+          <span>{hasBookmarked ? "Bookmarked" : "Bookmark"}</span>
+          <span className="opacity-50">·</span>
+          <span>{bookmarkCount}</span>
         </button>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Comments</h2>
+      <div className="space-y-6 rounded-3xl border border-white/5 bg-bg-surface p-8">
+        <h2 className="text-2xl font-bold text-text-primary font-serif">Comments</h2>
         <CommentThread comments={engagement.comments} writers={writers} />
-        <form className="space-y-3" onSubmit={handleSubmit} aria-label="Leave a comment">
+        <form className="space-y-4" onSubmit={handleSubmit} aria-label="Leave a comment">
           <label
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            className="block text-sm font-medium text-text-secondary uppercase tracking-wider"
             htmlFor="comment-body"
           >
             Share your thoughts
           </label>
-          <textarea
-            id="comment-body"
-            name="comment"
-            value={commentBody}
-            onChange={(event) => setCommentBody(event.target.value)}
-            required
-            rows={3}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-          />
+          <div className="relative">
+            <textarea
+              id="comment-body"
+              name="comment"
+              value={commentBody}
+              onChange={(event) => setCommentBody(event.target.value)}
+              required
+              rows={4}
+              className="w-full rounded-2xl border border-white/10 bg-bg-page px-4 py-3 text-sm text-text-primary placeholder-text-muted shadow-inner focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors resize-none"
+              placeholder="Join the discussion..."
+            />
+          </div>
           {commentError && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-sm text-red-400 font-medium">
               {commentError}
             </p>
           )}
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
-          >
-            Post comment
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-full bg-brand-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-500/25 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            >
+              Post comment
+            </button>
+          </div>
         </form>
       </div>
     </section>

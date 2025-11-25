@@ -19,30 +19,30 @@ export interface IBook extends Document {
   title: string;
   slug: string;
   description: string;
-  
+
   // Media
   coverUrl?: string;
-  
+
   // Pricing
   priceCents: number; // Changed from price to priceCents
   currency: BookCurrency;
-  
+
   // Status & visibility
   isDraft: boolean; // New field
   visibility: BookVisibility; // New field
-  
+
   // Categorization
   tags: string[]; // Changed from genres
-  
+
   // Files
   files: IBookFile[];
-  
+
   // Stats
   stats: {
     views: number;
     sales: number;
   };
-  
+
   // Legacy fields (kept for backward compatibility)
   coverImage?: string; // Legacy field, mapped to coverUrl
   category?: string;
@@ -53,7 +53,7 @@ export interface IBook extends Document {
   averageRating: number;
   reviewCount: number;
   publishedAt?: Date;
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -224,7 +224,7 @@ bookSchema.pre<IBook>("save", function (next) {
   if (this.isModified("status")) {
     this.isDraft = this.status === "draft";
   }
-  
+
   // Set publishedAt when book is published
   if (this.isModified("status") && this.status === "published" && !this.publishedAt) {
     this.publishedAt = new Date();
@@ -232,8 +232,8 @@ bookSchema.pre<IBook>("save", function (next) {
   if (this.isModified("isDraft") && !this.isDraft && !this.publishedAt) {
     this.publishedAt = new Date();
   }
-  
+
   next();
 });
 
-export const Book = mongoose.model<IBook>("Book", bookSchema);
+export const Book = mongoose.models.Book || mongoose.model<IBook>("Book", bookSchema);

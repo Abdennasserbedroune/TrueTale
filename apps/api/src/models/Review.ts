@@ -107,4 +107,4 @@ reviewSchema.statics.getUserReviews = function (
     .limit(limit);
 };
 
-export const Review = mongoose.model<IReview>("Review", reviewSchema);
+export const Review = mongoose.models.Review || mongoose.model<IReview>("Review", reviewSchema);

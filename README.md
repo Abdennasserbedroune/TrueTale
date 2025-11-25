@@ -128,7 +128,8 @@ Create `apps/api/.env`:
 NODE_ENV=development
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/truetale
-CLIENT_ORIGIN=http://localhost:3000
+
+const client = new MongoClient(uri);
 FRONTEND_URL=http://localhost:3000
 JWT_SECRET=dev-jwt-secret-key
 JWT_REFRESH_SECRET=dev-jwt-refresh-secret-key

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateListing } from "@/lib/marketplaceService";
 
-export async function PUT(request: NextRequest, { params }: { params: { workId: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ workId: string }> }) {
   try {
+    const { workId } = await params;
     const body = await request.json();
     const { title, synopsis, tags, priceCents, inventory } = body ?? {};
 
@@ -13,7 +14,7 @@ export async function PUT(request: NextRequest, { params }: { params: { workId: 
       );
     }
 
-    const work = updateListing(params.workId, {
+    const work = updateListing(workId, {
       title,
       synopsis,
       tags,

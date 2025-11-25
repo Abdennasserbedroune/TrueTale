@@ -263,9 +263,9 @@ export function createPendingPurchase(options: {
   if (!marketplace.priceCents || marketplace.priceCents <= 0) {
     throw new Error("Published listings require a price");
   }
-  if (marketplace.inventoryTotal !== null) {
+  if (typeof marketplace.inventoryTotal === "number") {
     const available = marketplace.inventoryAvailable ?? marketplace.inventoryTotal;
-    if (available <= 0) {
+    if ((available ?? 0) <= 0) {
       throw new Error("This listing is out of inventory");
     }
   }
@@ -304,12 +304,12 @@ export function markPurchaseCompleted(sessionId: string, token?: string): Purcha
   const work = requireWork(purchase.workId);
   const marketplace = ensureMarketplace(work);
 
-  if (marketplace.inventoryTotal !== null) {
+  if (typeof marketplace.inventoryTotal === "number") {
     const available = marketplace.inventoryAvailable ?? marketplace.inventoryTotal;
-    if (available <= 0) {
+    if ((available ?? 0) <= 0) {
       throw new Error("Inventory exhausted while completing purchase");
     }
-    marketplace.inventoryAvailable = available - 1;
+    marketplace.inventoryAvailable = (available ?? 0) - 1;
   }
 
   marketplace.purchaseCount = (marketplace.purchaseCount ?? 0) + 1;

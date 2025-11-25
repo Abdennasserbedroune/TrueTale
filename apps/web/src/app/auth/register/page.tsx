@@ -3,16 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { register } from "@/lib/auth";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"reader" | "writer" | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    if (!selectedRole) {
+      setError("Please select your role");
+      setLoading(false);
+      return;
+    }
 
     try {
       const formData = new FormData(e.currentTarget);
@@ -20,7 +28,7 @@ export default function RegisterPage() {
         email: formData.get("email") as string,
         username: formData.get("username") as string,
         password: formData.get("password") as string,
-        role: (formData.get("role") as "reader" | "writer") || "reader",
+        role: selectedRole,
       };
 
       await register(data);
@@ -39,30 +47,72 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a12] via-[#1a0a2e] to-[#0a0a12] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl w-full space-y-8">
+        <div className="text-center">
+          <Link href="/" className="text-3xl font-bold tracking-tight inline-block mb-8 hover:opacity-80 transition-opacity">
+            TrueTale
+          </Link>
+          <h2 className="text-4xl font-bold">
+            Join TrueTale
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-3 text-white/60">
             Already have an account?{" "}
-            <a href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link href="/auth/login" className="text-neon-purple hover:text-neon-pink transition-colors font-medium">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <div className="bg-red-500/10 border border-red-500/50 text-red-300 px-4 py-3 rounded-xl backdrop-blur-sm">
             {error}
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Role Selection */}
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-white/80">
+              I want to...
+            </label>
+            <div className="grid md:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("reader")}
+                className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left ${selectedRole === "reader"
+                    ? "border-neon-purple bg-neon-purple/10 shadow-lg shadow-neon-purple/20"
+                    : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                  }`}
+              >
+                <div className="text-3xl mb-3">📚</div>
+                <h3 className="text-xl font-bold mb-2">Read Stories</h3>
+                <p className="text-sm text-white/60">
+                  Discover and enjoy amazing stories from talented writers
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRole("writer")}
+                className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left ${selectedRole === "writer"
+                    ? "border-neon-purple bg-neon-purple/10 shadow-lg shadow-neon-purple/20"
+                    : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                  }`}
+              >
+                <div className="text-3xl mb-3">✍️</div>
+                <h3 className="text-xl font-bold mb-2">Write & Publish</h3>
+                <p className="text-sm text-white/60">
+                  Share your stories with readers and build your audience
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Form Fields */}
+          <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="sr-only">
+              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
                 Email address
               </label>
               <input
@@ -71,12 +121,13 @@ export default function RegisterPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-neon-purple focus:border-transparent transition-all"
+                placeholder="you@example.com"
               />
             </div>
+
             <div>
-              <label htmlFor="username" className="sr-only">
+              <label htmlFor="username" className="block text-sm font-medium text-white/80 mb-2">
                 Username
               </label>
               <input
@@ -85,12 +136,13 @@ export default function RegisterPage() {
                 type="text"
                 autoComplete="username"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-neon-purple focus:border-transparent transition-all"
+                placeholder="your_username"
               />
             </div>
+
             <div>
-              <label htmlFor="password" className="sr-only">
+              <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
                 Password
               </label>
               <input
@@ -100,35 +152,19 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 minLength={6}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password (min 6 characters)"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-neon-purple focus:border-transparent transition-all"
+                placeholder="Min 6 characters"
               />
             </div>
           </div>
 
-          <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-              I want to
-            </label>
-            <select
-              id="role"
-              name="role"
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="reader">Read stories</option>
-              <option value="writer">Write and publish stories</option>
-            </select>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Creating account..." : "Create account"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading || !selectedRole}
+            className="w-full py-3 px-4 bg-white text-black font-medium rounded-xl hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {loading ? "Creating account..." : "Create account"}
+          </button>
         </form>
       </div>
     </div>
