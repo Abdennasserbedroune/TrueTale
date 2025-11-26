@@ -13,6 +13,7 @@
     "seed": "tsx src/seeds/seed.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.84.0",
     "@truetale/db": "*",
     "@truetale/types": "*",
     "@truetale/utils": "*",
