@@ -48,3 +48,19 @@ apps/*/out
 apps/*/build
 packages/*/node_modules
 packages/*/dist
+
+# backup and obsolete files
+*.old
+*.backup
+*.bak
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
